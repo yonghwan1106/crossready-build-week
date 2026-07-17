@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://crossready.dev/schemas/audit-report.schema.json",
+  "title": "CrossReady Audit Report",
+  "description": "Evidence-linked findings produced by deterministic and semantic audit stages.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "auditId",
+    "createdAt",
+    "summary",
+    "findings"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "auditId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proven",
+        "missing",
+        "contradicted",
+        "needsHuman"
+      ],
+      "properties": {
+        "proven": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "contradicted": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "needsHuman": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactId",
+        "locatorType",
+        "locator",
+        "excerpt",
+        "factType"
+      ],
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locatorType": {
+          "type": "string",
+          "enum": [
+            "page",
+            "line",
+            "section",
+            "url",
+            "frame",
+            "metadata",
+            "hash"
+          ]
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "excerpt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "factType": {
+          "type": "string",
+          "enum": [
+            "deterministic",
+            "model_extracted",
+            "user_supplied"
+          ]
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "requirementIds",
+        "title",
+        "status",
+        "severity",
+        "claim",
+        "explanation",
+        "evidence",
+        "recommendedAction"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^FIND-[0-9]{3}$"
+        },
+        "requirementIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^REQ-[0-9]{3}$"
+          }
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PROVEN",
+            "MISSING",
+            "CONTRADICTED",
+            "NEEDS_HUMAN"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocker",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "claim": {
+          "type": "string",
+          "minLength": 1
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "recommendedAction": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

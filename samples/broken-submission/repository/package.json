@@ -1,0 +1,11 @@
+{
+  "name": "crossready-demo-fixture",
+  "private": true,
+  "version": "0.2.1",
+  "scripts": {
+    "test": "echo \"No automated test configured\""
+  },
+  "dependencies": {
+    "openai": "^6.0.0"
+  }
+}

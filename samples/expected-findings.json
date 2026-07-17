@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixture": "CrossReady_Broken_Submission.zip",
+  "expectedFindings": [
+    {
+      "id": "FIND-001",
+      "requirementIds": [
+        "REQ-001"
+      ],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "Configured model contradicts submitted model",
+      "evidence": [
+        "submission/description.md",
+        "README.md",
+        "repository/src/config.ts",
+        "docs/technical-overview_FINAL_v3.pdf page 2"
+      ]
+    },
+    {
+      "id": "FIND-002",
+      "requirementIds": [
+        "REQ-002"
+      ],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "Video metadata violates all three demo requirements",
+      "evidence": [
+        "submission/description.md",
+        "video/demo-metadata.json"
+      ]
+    },
+    {
+      "id": "FIND-003",
+      "requirementIds": [
+        "REQ-003"
+      ],
+      "status": "CONTRADICTED",
+      "severity": "high",
+      "title": "Evaluation metrics disagree across artifacts",
+      "evidence": [
+        "submission/description.md",
+        "README.md",
+        "docs/technical-overview_FINAL_v3.pdf page 1"
+      ]
+    },
+    {
+      "id": "FIND-004",
+      "requirementIds": [
+        "REQ-004"
+      ],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "FINAL v3 filename contains a v2.1 report",
+      "evidence": [
+        "manifest.json",
+        "docs/technical-overview_FINAL_v3.pdf page 1"
+      ]
+    },
+    {
+      "id": "FIND-005",
+      "requirementIds": [
+        "REQ-005"
+      ],
+      "status": "MISSING",
+      "severity": "blocker",
+      "title": "Reserved invalid domain cannot provide a public demo",
+      "evidence": [
+        "submission/description.md"
+      ]
+    },
+    {
+      "id": "FIND-006",
+      "requirementIds": [
+        "REQ-006"
+      ],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "Manifest hashes do not match submitted bytes",
+      "evidence": [
+        "manifest.json",
+        "docs/technical-overview_FINAL_v3.pdf",
+        "repository/src/config.ts"
+      ]
+    },
+    {
+      "id": "FIND-007",
+      "requirementIds": [
+        "REQ-007"
+      ],
+      "status": "CONTRADICTED",
+      "severity": "medium",
+      "title": "Claimed Evidence Graph is absent from live evidence",
+      "evidence": [
+        "submission/description.md",
+        "README.md",
+        "repository/src/config.ts",
+        "live/demo-snapshot.html"
+      ]
+    },
+    {
+      "id": "FIND-008",
+      "requirementIds": [
+        "REQ-008"
+      ],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "Submitted and deployed build identifiers disagree",
+      "evidence": [
+        "submission/description.md",
+        "README.md",
+        "repository/src/config.ts",
+        "live/demo-snapshot.html"
+      ]
+    },
+    {
+      "id": "FIND-009",
+      "requirementIds": [
+        "REQ-009"
+      ],
+      "status": "CONTRADICTED",
+      "severity": "high",
+      "title": "Passing-test claim conflicts with machine results",
+      "evidence": [
+        "submission/description.md",
+        "README.md",
+        "repository/test-results.json"
+      ]
+    },
+    {
+      "id": "FIND-010",
+      "requirementIds": [
+        "REQ-010"
+      ],
+      "status": "NEEDS_HUMAN",
+      "severity": "blocker",
+      "title": "Automatic correction setting needs runtime confirmation",
+      "evidence": [
+        "submission/description.md",
+        "README.md",
+        "repository/src/config.ts"
+      ]
+    },
+    {
+      "id": "FIND-011",
+      "requirementIds": [
+        "REQ-011"
+      ],
+      "status": "PROVEN",
+      "severity": "low",
+      "title": "README provides a concrete sample test action",
+      "evidence": [
+        "README.md"
+      ]
+    },
+    {
+      "id": "FIND-012",
+      "requirementIds": [
+        "REQ-005"
+      ],
+      "status": "NEEDS_HUMAN",
+      "severity": "medium",
+      "title": "PDF text layer contains a claim absent from the rendered page",
+      "evidence": [
+        "docs/technical-overview_FINAL_v3.pdf page 2 text layer",
+        "docs/technical-overview_FINAL_v3.pdf page 2 rendered image"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0.0",
+  "packageName": "CrossReady_FINAL_v3",
+  "files": [
+    {
+      "path": "docs/technical-overview_FINAL_v3.pdf",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "path": "repository/src/config.ts",
+      "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  ]
+}

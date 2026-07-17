@@ -1,0 +1,5 @@
+FICTIONAL DEMO FIXTURE - DO NOT SUBMIT
+
+This package intentionally contains contradictory claims, stale metadata, and
+integrity failures. It is test data for CrossReady, not a real competition
+submission.

@@ -1,0 +1,33 @@
+# Local registration and submission proof may contain personal information.
+evidence/
+
+# Local organizer notes are preserved on disk but not published with the app.
+해커톤_개요.md
+작업일정.txt
+
+# Secrets
+.env
+.env.*
+!.env.example
+project/.env*
+!project/.env.example
+
+# Next.js and Node
+project/node_modules/
+project/.next/
+project/out/
+project/.vercel/
+project/.turbo/
+*.tsbuildinfo
+
+# Generated scratch files
+tmp/
+output/
+.playwright-cli/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
