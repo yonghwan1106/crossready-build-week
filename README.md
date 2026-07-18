@@ -9,6 +9,33 @@ product, video metadata, and submission copy all describe the same product.
 This repository is being built for OpenAI Build Week 2026 in the
 **Work & Productivity** track.
 
+## Live reviewer demo
+
+Open **[crossready-build-week.vercel.app](https://crossready-build-week.vercel.app/)**
+and follow this no-login, no-cost path:
+
+1. Select **Load broken sample**.
+2. Select **Run evidence audit**.
+3. Open the first finding to inspect four exact evidence records.
+
+The public reviewer build intentionally has no OpenAI API key, so visitors
+cannot consume paid credit. It demonstrates the complete saved sample flow.
+The separate GPT-5.6 live path was verified on 2026-07-18 with 14 extracted
+requirements, 14 findings, and 21 server-computed line references.
+
+## Quick start
+
+```bash
+cd project
+npm install
+npm test
+npm run dev
+```
+
+Open <http://localhost:3000>, select **Load broken sample**, and run the audit.
+The sample does not require an API key. Full environment and command details are
+in [`project/README.md`](project/README.md).
+
 ## The problem
 
 A submission can pass every individual checklist and still fail as a package:
@@ -36,13 +63,46 @@ CrossReady never silently edits artifacts and never submits on a user's behalf.
 ## OpenAI integration
 
 - **Responses API**
-- **GPT-5.6** for multimodal requirement and claim extraction
+- **GPT-5.6** for multimodal requirement extraction and text-based claim
+  comparison
 - **PDF file inputs with high visual detail**
 - **Structured Outputs** for schema-constrained requirements and findings
-- An optional final adversarial review pass after deterministic checks
+- A semantic cross-audit after deterministic package checks
 
 The OpenAI client will be initialized only inside server-side request handlers.
 The API key must never be exposed to the browser.
+
+## How Codex accelerated development
+
+Codex was the primary implementation and verification workspace:
+
+- converted the product decision into canonical requirement and audit schemas;
+- generated and validated the intentionally inconsistent sample ZIP;
+- implemented the safe ZIP scanner and GPT-5.6 Structured Outputs calls;
+- built server-side evidence verification, deterministic manifest overrides,
+  cost guards, cancellation, and typed error handling;
+- implemented the accessible evidence dialog and reviewer flow;
+- ran 64 automated tests, lint, type checks, production builds, browser checks,
+  and an independent adversarial code review; and
+- diagnosed the first hosting preset mismatch and verified the corrected
+  production deployment.
+
+The final submission will include the primary Codex `/feedback` Session ID.
+
+## Human product decisions
+
+The human participant retained authority over the product and submission:
+
+- chose the **Work & Productivity** track and the narrow cross-artifact problem;
+- required four honest states rather than a false pass/fail answer;
+- prohibited silent rewriting and automatic submission;
+- required exact evidence before accepting a model-produced finding;
+- chose a free, no-key public reviewer build to protect paid API credit; and
+- kept PDF, visual, runtime, and external checks in human-review status when the
+  server could not verify them directly.
+
+These decisions are recorded in `notes/DECISIONS_2026-07-18.md` and
+`notes/PROJECT_BRIEF.md`.
 
 ## Repository map
 
@@ -62,7 +122,7 @@ The API key must never be exposed to the browser.
 - [x] Requirement and audit result schemas drafted
 - [x] Intentionally inconsistent sample package designed
 - [x] End-to-end audit implementation
-- [ ] Public deployment
+- [x] Public deployment and reviewer flow verified
 - [ ] Demo video and Devpost submission
 
 Validate the Day 1 schemas and intentionally broken fixture:

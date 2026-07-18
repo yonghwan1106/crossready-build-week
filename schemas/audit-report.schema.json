@@ -101,7 +101,8 @@
           "enum": [
             "deterministic",
             "model_extracted",
-            "user_supplied"
+            "user_supplied",
+            "sample_answer"
           ]
         }
       }

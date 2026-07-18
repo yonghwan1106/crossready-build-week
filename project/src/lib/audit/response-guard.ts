@@ -37,6 +37,7 @@ const FACT_TYPES = new Set([
   "deterministic",
   "model_extracted",
   "user_supplied",
+  "sample_answer",
 ]);
 const MODEL_FAILURE_CODES = new Set([
   "auth",

@@ -10,6 +10,17 @@ review.
 This repository contains the working CrossReady prototype for OpenAI Build Week
 2026.
 
+## Public reviewer demo
+
+The production reviewer build is available at
+**[crossready-build-week.vercel.app](https://crossready-build-week.vercel.app/)**.
+Select **Load broken sample**, run the audit, and open any finding to inspect its
+source locations and excerpts. No account is required.
+
+The public deployment intentionally has no `OPENAI_API_KEY`; the bundled sample
+therefore provides the complete 12-finding demo without paid API usage. The real
+GPT-5.6 path and its measured results are documented below.
+
 ## Current scope
 
 - Real requirements-file and submission-ZIP upload
@@ -57,6 +68,10 @@ npm test
 npm run build
 npm run start
 ```
+
+The current verification baseline is 64 passing automated tests plus a clean
+lint, TypeScript, production-build, public-browser, and Vercel runtime-log
+check.
 
 ## Architecture
 

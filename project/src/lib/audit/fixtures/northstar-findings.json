@@ -35,7 +35,7 @@
           "locatorType": "page",
           "locator": "page 2 text layer",
           "excerpt": "Semantic audit\ngpt-4.1-mini\nModel extracted",
-          "factType": "deterministic"
+          "factType": "sample_answer"
         }
       ]
     },
@@ -88,7 +88,7 @@
           "locatorType": "page",
           "locator": "page 1 text layer",
           "excerpt": "94%\nContradiction recall\n80\nEvaluated packages",
-          "factType": "deterministic"
+          "factType": "sample_answer"
         }
       ]
     },
@@ -111,7 +111,7 @@
           "locatorType": "page",
           "locator": "page 1 text layer",
           "excerpt": "Document version 2.1 - prepared before the final evaluation run.",
-          "factType": "deterministic"
+          "factType": "sample_answer"
         }
       ]
     },
@@ -323,14 +323,14 @@
           "locatorType": "page",
           "locator": "page 2 text layer",
           "excerpt": "Public demo URL verified and reviewer access confirmed.",
-          "factType": "deterministic"
+          "factType": "sample_answer"
         },
         {
           "artifactId": "docs/technical-overview_FINAL_v3.pdf",
           "locatorType": "page",
           "locator": "page 2 rendered image",
           "excerpt": "Deterministic fixture observation: the white-on-white footer sentence is absent from the visible rendered pixels.",
-          "factType": "deterministic"
+          "factType": "sample_answer"
         }
       ]
     }

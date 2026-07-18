@@ -67,7 +67,11 @@ export interface AuditEvidence {
     | "hash";
   locator: string;
   excerpt: string;
-  factType: "deterministic" | "model_extracted" | "user_supplied";
+  factType:
+    | "deterministic"
+    | "model_extracted"
+    | "user_supplied"
+    | "sample_answer";
 }
 
 export interface AuditFinding {

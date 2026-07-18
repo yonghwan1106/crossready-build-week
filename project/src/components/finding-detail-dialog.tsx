@@ -8,6 +8,7 @@ function factTypeLabel(factType: AuditFinding["evidence"][number]["factType"]) {
     deterministic: "파일에서 직접 계산",
     model_extracted: "GPT가 찾고 서버가 인용 확인",
     user_supplied: "사용자 제공",
+    sample_answer: "준비된 샘플 정답",
   };
   return labels[factType];
 }

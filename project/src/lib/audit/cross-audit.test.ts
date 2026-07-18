@@ -534,12 +534,20 @@ describe("createCanonicalSampleReport", () => {
       ),
     );
     expect(pdfEvidence.length).toBeGreaterThan(0);
+    const pdfPageEvidence = pdfEvidence.filter(
+      (evidence) => evidence.locatorType === "page",
+    );
     expect(
-      pdfEvidence.every(
+      pdfPageEvidence.every(
         (evidence) =>
-          evidence.factType === "deterministic" &&
+          evidence.factType === "sample_answer" &&
           !/^size=\d+;\s*sha256=/i.test(evidence.excerpt),
       ),
+    ).toBe(true);
+    expect(
+      pdfEvidence
+        .filter((evidence) => evidence.locatorType === "hash")
+        .every((evidence) => evidence.factType === "deterministic"),
     ).toBe(true);
     expect(pdfEvidence).toEqual(
       expect.arrayContaining([
