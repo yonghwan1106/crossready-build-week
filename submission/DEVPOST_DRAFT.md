@@ -18,7 +18,7 @@ Work & Productivity
 - Live demo: <https://crossready-build-week.vercel.app/>
 - Source repository: <https://github.com/yonghwan1106/crossready-build-week>
 - Demo video: **[TODO: ADD PUBLIC YOUTUBE URL]**
-- Codex `/feedback` Session ID: **[TODO: ADD SESSION ID]**
+- Codex `/feedback` Session ID: `019f722a-e88a-7d60-9bd5-fd267a70556c`
 
 ## Inspiration
 
