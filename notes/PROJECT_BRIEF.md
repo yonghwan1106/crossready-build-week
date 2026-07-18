@@ -57,7 +57,8 @@ Codex is used for product framing, repository scaffolding, schema design, sample
 fixture generation, implementation, testing, debugging, and final QA. Evidence
 will include:
 
-- the primary Codex session ID from `/feedback`;
+- the primary Codex `/feedback` session ID:
+  `019f722a-e88a-7d60-9bd5-fd267a70556c`;
 - dated Git commits beginning on 2026-07-18;
 - README documentation of human decisions and Codex contributions; and
 - test output covering the sample bundle and key user flow.
@@ -123,4 +124,4 @@ one finding from red to green after the artifact is corrected.
 - [ ] English Devpost description
 - [ ] Hero image and screenshots
 - [ ] Public narrated video under three minutes
-- [ ] Final `/feedback` session ID and submission evidence
+- [x] Final `/feedback` session ID and submission evidence
