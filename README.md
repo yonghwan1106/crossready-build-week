@@ -123,7 +123,8 @@ These decisions are recorded in `notes/DECISIONS_2026-07-18.md` and
 - [x] Intentionally inconsistent sample package designed
 - [x] End-to-end audit implementation
 - [x] Public deployment and reviewer flow verified
-- [ ] Demo video and Devpost submission
+- [x] Upload-ready narrated demo MP4
+- [ ] Public YouTube upload and Devpost submission
 
 Validate the Day 1 schemas and intentionally broken fixture:
 

@@ -118,10 +118,11 @@ one finding from red to green after the artifact is corrected.
 - [x] OpenAI technology role
 - [x] MVP boundary
 - [x] Demo scenario
-- [ ] Working end-to-end audit
-- [ ] Error and empty states
-- [ ] Public deployment
-- [ ] English Devpost description
+- [x] Working end-to-end audit
+- [x] Error and empty states
+- [x] Public deployment
+- [x] English Devpost description
 - [ ] Hero image and screenshots
-- [ ] Public narrated video under three minutes
+- [x] Upload-ready narrated MP4 under three minutes
+- [ ] Public YouTube video URL
 - [x] Final `/feedback` session ID and submission evidence
