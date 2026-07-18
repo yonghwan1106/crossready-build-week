@@ -5,8 +5,8 @@
 - URL: <https://crossready-build-week.vercel.app/>
 - Vercel project: `crossready-build-week`
 - Project ID: `prj_hInUCuJgZaLiWWWUx6iu71w54xZY`
-- Production deployment ID: `dpl_14abTLKo1CM9wyNSCjuoAMfo4D8G`
-- Source commit: `f26570a1d25faa110b6620b1fc00a29f344f0ed2`
+- Production deployment ID: `dpl_6cXKQY41nheRTenWjwJ3rjFpDUpR`
+- Source commit: `3045e1f70fa58ab2667f7c0aff92aa1a59732ea3`
 - Verified: 2026-07-18 KST
 
 ## Cost boundary
@@ -47,6 +47,8 @@ screenshot, and the production deployment remains keyless.
 - Sample findings: 12
 - Status counts: 1 Proven, 8 Contradicted, 1 Missing, 2 Needs Human
 - First finding dialog: four exact evidence records displayed
+- Prepared PDF observations are labeled `준비된 샘플 정답`, while hashes
+  remain labeled as directly calculated facts
 - Browser console errors: 0
 - Runtime error/fatal logs: 0
 - Verified runtime responses: three HTTP 200 responses
@@ -63,5 +65,7 @@ screenshot, and the production deployment remains keyless.
 
 The first remote build completed while the new Vercel project still used the
 generic static-site preset, so its alias returned `404 NOT_FOUND`. The project
-framework was corrected to Next.js and the same source commit was redeployed.
-The production deployment above is the corrected, verified deployment.
+framework was corrected to Next.js and that source was successfully
+redeployed. The reviewer-ready source commit recorded above was later deployed
+through the corrected Next.js configuration and is the current verified
+production release.
