@@ -18,15 +18,18 @@
     },
     "sourceArtifactId": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 120
     },
     "sourceTitle": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 300
     },
     "requirements": {
       "type": "array",
       "minItems": 1,
+      "maxItems": 75,
       "items": {
         "$ref": "#/$defs/requirement"
       }
@@ -45,7 +48,8 @@
       "properties": {
         "artifactId": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 120
         },
         "locatorType": {
           "type": "string",
@@ -60,11 +64,13 @@
         },
         "locator": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 300
         },
         "excerpt": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 500
         }
       }
     },
@@ -89,7 +95,8 @@
         },
         "statement": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 1000
         },
         "modality": {
           "type": "string",
@@ -123,19 +130,23 @@
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "maxLength": 500
         },
         "expectedEvidence": {
           "type": "array",
           "minItems": 1,
+          "maxItems": 12,
           "items": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 240
           }
         },
         "verificationMethods": {
           "type": "array",
           "minItems": 1,
+          "maxItems": 5,
           "uniqueItems": true,
           "items": {
             "type": "string",

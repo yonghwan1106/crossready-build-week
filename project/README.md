@@ -7,19 +7,24 @@ compares requirements, deliverables, source code, live URLs, and submission copy
 to show where a claim is proven, missing, contradicted, or still needs human
 review.
 
-This repository currently contains the first static product prototype for
-OpenAI Build Week 2026.
+This repository contains the working Day 2 prototype for OpenAI Build Week
+2026.
 
-## Prototype scope
+## Current scope
 
-- Evidence-audit workspace and upload guidance
+- Real requirements-file and submission-ZIP upload
+- Safe ZIP inventory, SHA-256, text preview, and manifest checks
+- GPT-5.6 requirement extraction through the Responses API
+- Structured Outputs constrained by the canonical requirement schema
+- Honest bundled-sample and file-scan-only modes when no API key is present
 - Four-state audit summary: Proven, Contradicted, Missing, Needs Review
 - Exact source-to-source evidence presentation
 - Responsive dark dashboard UI
-- OpenAI SDK installed for the next implementation phase
 
-The OpenAI API is **not called yet**. All audit findings on the first screen are
-clearly labeled example data.
+The lower audit findings remain clearly labeled example data. The upload panel
+and its result card are live: they read the selected ZIP, and they call GPT-5.6
+only when a server-side API key is configured. Sample mode never calls the API
+and says so in the result.
 
 ## Local development
 
@@ -43,11 +48,12 @@ Open [http://localhost:3000](http://localhost:3000).
 ```bash
 npm run dev
 npm run lint
+npm test
 npm run build
 npm run start
 ```
 
-## Planned architecture
+## Architecture
 
 - Next.js App Router and TypeScript
 - Tailwind CSS
@@ -55,9 +61,11 @@ npm run start
 - Structured Outputs for atomic requirement and evidence records
 - Deterministic file checks alongside model-based cross-artifact review
 
-API clients will be initialized lazily when the analysis route is implemented so
-builds do not require secrets.
+The OpenAI client is initialized lazily inside the server-only extraction path,
+so builds and bundled-sample audits do not require secrets. Model responses use
+`store: false`.
 
 ## Environment
 
-Copy `.env.example` to `.env.local`. Never commit real API keys.
+Copy `.env.example` to `.env.local` only for a live model test. Never commit real
+API keys or prefix the key with `NEXT_PUBLIC_`.

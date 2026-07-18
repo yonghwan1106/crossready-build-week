@@ -41,7 +41,7 @@ against each other.
 
 - API: OpenAI Responses API
 - Required model family: GPT-5.6
-- Baseline extraction model: `gpt-5.6-terra`
+- Baseline extraction model: `gpt-5.6`
 - Optional quality-first final audit: `gpt-5.6-sol`
 - Inputs: rules text/PDF, PDF page images at high detail, artifact text, and
   deterministic scan results

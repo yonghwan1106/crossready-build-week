@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import AuditWorkspace from "@/components/audit-workspace";
 
 type IconName =
   | "archive"
@@ -110,27 +111,6 @@ function Icon({
     </svg>
   );
 }
-
-const auditSources = [
-  {
-    icon: "file" as const,
-    label: "Requirements",
-    hint: "PDF or public URL",
-    formats: "PDF · URL",
-  },
-  {
-    icon: "archive" as const,
-    label: "Deliverables",
-    hint: "Your final submission bundle",
-    formats: "ZIP · PDF · MD",
-  },
-  {
-    icon: "globe" as const,
-    label: "Live evidence",
-    hint: "Product, repository, or video",
-    formats: "URL",
-  },
-];
 
 const signals = [
   {
@@ -309,91 +289,7 @@ export default function Home() {
           id="workspace"
           className="grid items-start gap-5 xl:grid-cols-[minmax(0,0.83fr)_minmax(0,1.17fr)]"
         >
-          <div className="overflow-hidden rounded-2xl border border-white/9 bg-panel/90 shadow-2xl shadow-black/15">
-            <div className="border-b border-white/8 px-5 py-5 sm:px-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-sm font-medium text-white">
-                    Start an evidence audit
-                  </h2>
-                  <p className="mt-1 text-xs leading-5 text-zinc-400">
-                    Add the sources a reviewer would use to validate your work.
-                  </p>
-                </div>
-                <span className="rounded-full bg-white/5 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-400">
-                  0 / 3 added
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-3 p-4 sm:p-5">
-              {auditSources.map((source, index) => (
-                <button
-                  type="button"
-                  disabled
-                  key={source.label}
-                  className="group flex w-full items-center gap-4 rounded-xl border border-dashed border-white/12 bg-white/[0.018] p-4 text-left transition-colors enabled:hover:border-accent/35 enabled:hover:bg-accent/[0.025] disabled:cursor-not-allowed disabled:opacity-75"
-                >
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-white/8 bg-white/4 text-zinc-400 transition-colors group-hover:text-accent">
-                    <Icon name={source.icon} className="size-[18px]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-zinc-200">
-                        {source.label}
-                      </span>
-                      {index === 0 && (
-                        <span className="rounded bg-accent/8 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-accent/80">
-                          Required
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 truncate text-[11px] text-zinc-400">
-                      {source.hint}
-                    </p>
-                  </div>
-                  <span className="hidden font-mono text-[9px] uppercase tracking-wider text-zinc-500 sm:block">
-                    {source.formats}
-                  </span>
-                  <Icon
-                    name="upload"
-                    className="size-4 text-zinc-600 transition-colors group-hover:text-accent"
-                  />
-                </button>
-              ))}
-
-              <div className="rounded-xl border border-white/7 bg-black/15 p-4">
-                <label
-                  htmlFor="submission-copy"
-                  className="mb-2 block text-[11px] font-medium text-zinc-400"
-                >
-                  Submission copy{" "}
-                  <span className="font-normal text-zinc-500">(optional)</span>
-                </label>
-                <textarea
-                  id="submission-copy"
-                  className="h-16 w-full resize-none rounded-lg border border-white/8 bg-black/20 px-3 py-2.5 text-[11px] leading-5 text-zinc-400 placeholder:text-zinc-500 focus-visible:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20"
-                  placeholder="Paste the claims reviewers will read…"
-                  readOnly
-                />
-              </div>
-            </div>
-
-            <div className="border-t border-white/8 bg-black/10 p-4 sm:p-5">
-              <button
-                type="button"
-                disabled
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-[#082116] shadow-[0_0_30px_rgba(98,215,154,0.08)] transition-colors enabled:hover:bg-[#b5ffd4] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                Run evidence audit
-                <Icon name="arrow" />
-              </button>
-              <p className="mt-3 text-center text-[10px] text-zinc-500">
-                Prototype preview · Analysis is not connected yet
-              </p>
-            </div>
-          </div>
-
+          <AuditWorkspace />
           <div
             id="evidence"
             className="overflow-hidden rounded-2xl border border-white/9 bg-panel/90 shadow-2xl shadow-black/15"

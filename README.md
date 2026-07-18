@@ -70,6 +70,30 @@ Validate the Day 1 schemas and intentionally broken fixture:
 node scripts/validate_day1.mjs
 ```
 
+## Day 2 status - file scanner and GPT-5.6 wiring
+
+- [x] Read real ZIP entries without executing or writing submitted files
+- [x] Enforce archive, file-count, expanded-size, and path-safety limits
+- [x] Compute SHA-256 for the archive and every submitted file
+- [x] Compare `manifest.json` claims with the exact submitted bytes
+- [x] Connect GPT-5.6 requirement extraction through the Responses API
+- [x] Constrain model output with the canonical Zod requirement schema
+- [x] Add honest `sample` and `scanner_only` modes when no API key is present
+- [x] Connect the upload form and bundled broken-sample flow
+- [ ] Run a live GPT-5.6 smoke test with a server-side API key
+
+Run the automated scanner and extraction-contract tests:
+
+```bash
+cd project
+npm test
+```
+
+Run the app without an API key and choose **Load broken sample** to test the
+complete local sample flow. To test live extraction, copy `project/.env.example`
+to `project/.env.local`, add `OPENAI_API_KEY` locally, and restart the app. Never
+put the key in a browser variable or commit it.
+
 ## Deadline
 
 The submission deadline is **2026-07-22 09:00 KST**. The internal deadline is

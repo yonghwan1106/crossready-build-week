@@ -1,0 +1,254 @@
+{
+  "schemaVersion": "1.0.0",
+  "sourceArtifactId": "northstar-rules",
+  "sourceTitle": "Northstar Workflow Challenge 2026",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "statement": "The model named in the submission description, README, technical report, and runnable configuration must agree and must be GPT-5.6.",
+      "modality": "MUST",
+      "scope": "technology",
+      "criticality": "blocking",
+      "condition": null,
+      "expectedEvidence": [
+        "submission model claim",
+        "repository model configuration",
+        "runtime trace",
+        "technical report model claim"
+      ],
+      "verificationMethods": [
+        "deterministic",
+        "semantic"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Required technology",
+        "excerpt": "The submitted product must use GPT-5.6 for its core semantic audit."
+      }
+    },
+    {
+      "id": "REQ-002",
+      "statement": "The demo video must be public, narrated, and shorter than 180 seconds.",
+      "modality": "MUST",
+      "scope": "media",
+      "criticality": "blocking",
+      "condition": null,
+      "expectedEvidence": [
+        "video visibility metadata",
+        "video duration metadata",
+        "audio track metadata"
+      ],
+      "verificationMethods": [
+        "deterministic",
+        "external"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Demo media",
+        "excerpt": "The demo video must be public, must contain an audio narration track, and must be shorter than 180 seconds."
+      }
+    },
+    {
+      "id": "REQ-003",
+      "statement": "Evaluation sample counts and quality metrics must be identical everywhere they appear.",
+      "modality": "MUST",
+      "scope": "submission",
+      "criticality": "scored",
+      "condition": null,
+      "expectedEvidence": [
+        "all quantified evaluation claims"
+      ],
+      "verificationMethods": [
+        "deterministic",
+        "semantic"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Quantified claims",
+        "excerpt": "Evaluation sample counts and quality metrics must be identical everywhere they appear."
+      }
+    },
+    {
+      "id": "REQ-004",
+      "statement": "The final technical report must identify itself internally as version 3.0 or later.",
+      "modality": "MUST",
+      "scope": "submission",
+      "criticality": "blocking",
+      "condition": null,
+      "expectedEvidence": [
+        "rendered report version",
+        "PDF text version",
+        "PDF metadata title"
+      ],
+      "verificationMethods": [
+        "deterministic",
+        "semantic",
+        "visual"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Final report",
+        "excerpt": "A filename containing FINAL is not evidence of the internal version."
+      }
+    },
+    {
+      "id": "REQ-005",
+      "statement": "A reviewer must be able to open the submitted demo URL without an account or invitation.",
+      "modality": "MUST",
+      "scope": "access",
+      "criticality": "blocking",
+      "condition": null,
+      "expectedEvidence": [
+        "submitted URL",
+        "anonymous HTTP response",
+        "rendered public page"
+      ],
+      "verificationMethods": [
+        "external",
+        "visual"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Test access",
+        "excerpt": "A reviewer must be able to open the submitted demo URL without an account or invitation."
+      }
+    },
+    {
+      "id": "REQ-006",
+      "statement": "Every SHA-256 value in the package manifest must match the exact submitted file bytes.",
+      "modality": "MUST",
+      "scope": "repository",
+      "criticality": "blocking",
+      "condition": null,
+      "expectedEvidence": [
+        "manifest hashes",
+        "computed file hashes"
+      ],
+      "verificationMethods": [
+        "deterministic"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Package integrity",
+        "excerpt": "Every SHA-256 value in the package manifest must match the exact submitted file bytes."
+      }
+    },
+    {
+      "id": "REQ-007",
+      "statement": "A claimed Evidence Graph must be visibly present in the live-product evidence.",
+      "modality": "SHOULD",
+      "scope": "product",
+      "criticality": "scored",
+      "condition": "The submission description claims an Evidence Graph.",
+      "expectedEvidence": [
+        "feature claim",
+        "live-product snapshot",
+        "feature configuration"
+      ],
+      "verificationMethods": [
+        "semantic",
+        "visual"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Product evidence",
+        "excerpt": "If the submission description claims an Evidence Graph, the live-product evidence must visibly contain that feature."
+      }
+    },
+    {
+      "id": "REQ-008",
+      "statement": "Build identifiers across the submission description, repository configuration, and live-product evidence must identify the same release.",
+      "modality": "MUST",
+      "scope": "product",
+      "criticality": "blocking",
+      "condition": null,
+      "expectedEvidence": [
+        "submitted build ID",
+        "repository build ID",
+        "live build ID"
+      ],
+      "verificationMethods": [
+        "deterministic"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Release identity",
+        "excerpt": "The build identifier in the submission description, repository configuration, and live-product evidence must identify the same release."
+      }
+    },
+    {
+      "id": "REQ-009",
+      "statement": "Claims about passing tests must agree with the machine-readable test result generated from the submitted commit.",
+      "modality": "MUST",
+      "scope": "repository",
+      "criticality": "scored",
+      "condition": null,
+      "expectedEvidence": [
+        "human-readable test claim",
+        "machine-readable test totals",
+        "test commit identifier"
+      ],
+      "verificationMethods": [
+        "deterministic",
+        "semantic"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Test claims",
+        "excerpt": "Claims about passing tests must agree with the machine-readable test result generated from the submitted commit."
+      }
+    },
+    {
+      "id": "REQ-010",
+      "statement": "The product must not apply changes to submitted artifacts unless the user explicitly approves the change.",
+      "modality": "MUST",
+      "scope": "product",
+      "criticality": "blocking",
+      "condition": null,
+      "expectedEvidence": [
+        "product authority claim",
+        "correction configuration",
+        "runtime action log"
+      ],
+      "verificationMethods": [
+        "semantic",
+        "human"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Human authority",
+        "excerpt": "The product must not apply changes to submitted artifacts unless the user explicitly approves the change."
+      }
+    },
+    {
+      "id": "REQ-011",
+      "statement": "The root README must include a concrete action a reviewer can use to load or test the sample.",
+      "modality": "SHOULD",
+      "scope": "repository",
+      "criticality": "scored",
+      "condition": null,
+      "expectedEvidence": [
+        "README test section"
+      ],
+      "verificationMethods": [
+        "semantic"
+      ],
+      "source": {
+        "artifactId": "northstar-rules",
+        "locatorType": "section",
+        "locator": "Reproducible review",
+        "excerpt": "The root README must include a concrete action a reviewer can use to load or test the sample."
+      }
+    }
+  ]
+}
