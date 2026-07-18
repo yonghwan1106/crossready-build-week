@@ -60,3 +60,12 @@ input {
   background-size: 22px 22px;
   mask-image: linear-gradient(to bottom, black 35%, transparent 95%);
 }
+
+/* 실제 결과가 나타나면 정적 예시를 숨겨 두 결과가 섞이지 않게 한다. */
+#workspace:has([data-audit-result]) > #evidence {
+  display: none;
+}
+
+#workspace:has([data-audit-result]) > :first-child {
+  grid-column: 1 / -1;
+}

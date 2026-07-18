@@ -55,11 +55,15 @@ The API key is read only inside the server path. It is never sent to the browser
 - Unit tests cover sample inventory, exact hashes, matching manifests, archive
   limits, unsafe paths, untrusted text framing, PDF high-detail input,
   Structured Outputs request options, and refusal handling.
-- A live API smoke test remains pending until a server-side API key is available.
+- A live GPT-5.6 requirements-extraction smoke test completed successfully after
+  a server-side project key and prepaid credit were configured.
 
-## Before public deployment
+## Subsequent deep-audit integration
 
-- Add platform-level rate limiting or authentication to the live GPT route.
-- Keep the current 20 MiB request limit; use direct object-storage uploads if
-  larger production packages become necessary.
-- Run the pending live GPT-5.6 smoke test and record cost, latency, and token use.
+- The later deep-audit milestone added semantic cross-artifact findings,
+  server-verified evidence excerpts, clickable evidence details, typed partial
+  failures, and application timeouts.
+- Paid runs now have per-client and per-process daily limits. A multi-instance
+  public deployment still needs a durable shared limiter or platform firewall.
+- The 20 MiB request limit is enforced while streaming the request body, even
+  when a caller omits `Content-Length`.

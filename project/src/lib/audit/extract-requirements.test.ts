@@ -5,7 +5,9 @@ import {
   buildRequirementExtractionInput,
   extractRequirementsWithGpt,
   EXTRACTION_MODEL,
+  RULES_LIMITS,
   type RulesDocument,
+  validateRulesDocument,
 } from "./extract-requirements";
 import { requirementSetSchema } from "./requirement-schema";
 
@@ -75,6 +77,41 @@ describe("buildRequirementExtractionInput", () => {
     expect(serialized).toContain('"detail":"high"');
     expect(serialized).toContain("data:application/pdf;base64,");
   });
+
+  it("rejects a PDF whose visible page tree exceeds the 40-page ceiling", () => {
+    const pageObjects = Array.from(
+      { length: RULES_LIMITS.maxPdfPages + 1 },
+      (_, index) => `${index + 1} 0 obj\n<< /Type /Page >>\nendobj`,
+    ).join("\n");
+
+    expect(() =>
+      validateRulesDocument({
+        filename: "long-rules.pdf",
+        mediaType: "application/pdf",
+        bytes: new TextEncoder().encode(`%PDF-1.7\n${pageObjects}`),
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: "RULES_PDF_TOO_MANY_PAGES",
+        status: 413,
+      }),
+    );
+  });
+
+  it("rejects text rules above the bounded input ceiling", () => {
+    expect(() =>
+      validateRulesDocument({
+        filename: "oversized-rules.md",
+        mediaType: "text/markdown",
+        bytes: new Uint8Array(RULES_LIMITS.maxTextBytes + 1),
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: "RULES_TOO_LARGE",
+        status: 413,
+      }),
+    );
+  });
 });
 
 describe("extractRequirementsWithGpt", () => {
@@ -93,17 +130,41 @@ describe("extractRequirementsWithGpt", () => {
     expect(params).toMatchObject({
       model: EXTRACTION_MODEL,
       reasoning: { effort: "low" },
-      max_output_tokens: 8_000,
+      max_output_tokens: 5_000,
       store: false,
+      text: { verbosity: "low" },
     });
     expect(params.text.format.type).toBe("json_schema");
-    expect(result.sourceArtifactId).toMatch(/^rules-[a-f0-9]{12}$/);
+    expect(result.requirements.sourceArtifactId).toMatch(
+      /^rules-[a-f0-9]{12}$/,
+    );
     expect(
-      result.requirements.every(
+      result.requirements.requirements.every(
         (requirement) =>
-          requirement.source.artifactId === result.sourceArtifactId,
+          requirement.source.artifactId ===
+          result.requirements.sourceArtifactId,
       ),
     ).toBe(true);
+    expect(result.metadata.model).toBe(EXTRACTION_MODEL);
+  });
+
+  it("does not call OpenAI when the audit was already cancelled", async () => {
+    const parse = vi.fn();
+    const client = {
+      responses: { parse },
+    } as unknown as OpenAI;
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      extractRequirementsWithGpt(markdownDocument(), client, {
+        signal: controller.signal,
+      }),
+    ).rejects.toMatchObject({
+      code: "timeout",
+      message: "Model request was cancelled.",
+    });
+    expect(parse).not.toHaveBeenCalled();
   });
 
   it("handles a model refusal as a typed extraction error", async () => {
@@ -122,7 +183,7 @@ describe("extractRequirementsWithGpt", () => {
 
     await expect(
       extractRequirementsWithGpt(markdownDocument(), client),
-    ).rejects.toMatchObject({ code: "MODEL_REFUSAL" });
+    ).rejects.toMatchObject({ code: "refusal" });
   });
 
   it("rejects requirement IDs that are not continuous from REQ-001", async () => {
@@ -137,7 +198,7 @@ describe("extractRequirementsWithGpt", () => {
 
     await expect(
       extractRequirementsWithGpt(markdownDocument(), client),
-    ).rejects.toMatchObject({ code: "MODEL_INVALID_OUTPUT" });
+    ).rejects.toMatchObject({ code: "invalid_output" });
   });
 
   it("rejects a text-source excerpt that does not occur in the document", async () => {
@@ -154,7 +215,7 @@ describe("extractRequirementsWithGpt", () => {
 
     await expect(
       extractRequirementsWithGpt(markdownDocument(), client),
-    ).rejects.toMatchObject({ code: "MODEL_INVALID_OUTPUT" });
+    ).rejects.toMatchObject({ code: "invalid_output" });
   });
 
   it("rejects duplicate verification methods in the canonical schema", () => {

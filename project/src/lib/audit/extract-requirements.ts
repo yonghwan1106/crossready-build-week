@@ -8,13 +8,21 @@ import {
   requirementSetSchema,
   type RequirementSet,
 } from "./requirement-schema";
-import { AuditInputError } from "./errors";
+import {
+  AuditInputError,
+  classifyModelError,
+  ModelOperationError,
+  MODEL_TIMEOUT_MS,
+  withModelTimeout,
+} from "./errors";
+import type { ModelRunMetadata } from "./types";
 
 export const EXTRACTION_MODEL = "gpt-5.6";
 
 export const RULES_LIMITS = {
-  maxTextBytes: 1 * 1024 * 1024,
-  maxPdfBytes: 8 * 1024 * 1024,
+  maxTextBytes: 256 * 1024,
+  maxPdfBytes: 4 * 1024 * 1024,
+  maxPdfPages: 40,
 } as const;
 
 const EXTRACTOR_INSTRUCTIONS = `You extract auditable requirements from one rules document.
@@ -35,27 +43,15 @@ Extraction rules:
 - Do not invent deadlines, thresholds, evidence, or rules absent from the document.
 - Return only the structured response required by the schema.`;
 
-export class RequirementExtractionError extends Error {
-  readonly code:
-    | "MODEL_REFUSAL"
-    | "MODEL_EMPTY_OUTPUT"
-    | "MODEL_INVALID_OUTPUT"
-    | "MODEL_REQUEST_FAILED";
-
-  constructor(
-    code: RequirementExtractionError["code"],
-    message: string,
-  ) {
-    super(message);
-    this.name = "RequirementExtractionError";
-    this.code = code;
-  }
-}
-
 export interface RulesDocument {
   filename: string;
   mediaType: "text/plain" | "text/markdown" | "application/pdf";
   bytes: Uint8Array;
+}
+
+export interface RequirementExtractionResult {
+  requirements: RequirementSet;
+  metadata: ModelRunMetadata;
 }
 
 export interface RequirementExtractionInput {
@@ -73,6 +69,25 @@ function decodeTextRules(bytes: Uint8Array): string {
       "The text rules file must use UTF-8 encoding.",
     );
   }
+}
+
+function conservativePdfPageCount(bytes: Uint8Array): number {
+  const rawPdf = Buffer.from(bytes).toString("latin1");
+  const pageObjectCount =
+    rawPdf.match(/\/Type\s*\/Page\b/g)?.length ?? 0;
+  let largestDeclaredPageCount = 0;
+
+  for (const match of rawPdf.matchAll(/\/Count\s+([0-9]+)\b/g)) {
+    const declaredCount = Number(match[1]);
+    if (Number.isSafeInteger(declaredCount)) {
+      largestDeclaredPageCount = Math.max(
+        largestDeclaredPageCount,
+        declaredCount,
+      );
+    }
+  }
+
+  return Math.max(pageObjectCount, largestDeclaredPageCount);
 }
 
 export function validateRulesDocument(document: RulesDocument): void {
@@ -112,6 +127,14 @@ export function validateRulesDocument(document: RulesDocument): void {
       throw new AuditInputError(
         "INVALID_PDF",
         "The uploaded .pdf does not have a valid PDF signature.",
+      );
+    }
+    const pageCount = conservativePdfPageCount(document.bytes);
+    if (pageCount > RULES_LIMITS.maxPdfPages) {
+      throw new AuditInputError(
+        "RULES_PDF_TOO_MANY_PAGES",
+        `The rules PDF exceeds the ${RULES_LIMITS.maxPdfPages}-page limit.`,
+        413,
       );
     }
   } else {
@@ -247,63 +270,88 @@ function enforceRequirementTraceability(
 function getOpenAIClient(): OpenAI {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new RequirementExtractionError(
-      "MODEL_REQUEST_FAILED",
-      "OPENAI_API_KEY is not configured.",
-    );
+    throw new ModelOperationError("auth", "OPENAI_API_KEY is not configured.");
   }
-  return new OpenAI({ apiKey });
+  return new OpenAI({ apiKey, maxRetries: 0 });
 }
 
 export async function extractRequirementsWithGpt(
   document: RulesDocument,
   client: OpenAI = getOpenAIClient(),
-): Promise<RequirementSet> {
+  options: {
+    safetyIdentifier?: string;
+    signal?: AbortSignal;
+  } = {},
+): Promise<RequirementExtractionResult> {
   const prepared = buildRequirementExtractionInput(document);
 
   let response;
+  const startedAt = Date.now();
   try {
-    response = await client.responses.parse({
-      model: EXTRACTION_MODEL,
-      instructions: EXTRACTOR_INSTRUCTIONS,
-      input: prepared.input,
-      reasoning: { effort: "low" },
-      max_output_tokens: 8_000,
-      store: false,
-      text: {
-        format: zodTextFormat(requirementSetSchema, "requirement_set"),
-      },
-    });
-  } catch {
-    throw new RequirementExtractionError(
-      "MODEL_REQUEST_FAILED",
-      "GPT-5.6 could not process the rules document.",
+    response = await withModelTimeout((signal) =>
+      client.responses.parse(
+        {
+          model: EXTRACTION_MODEL,
+          instructions: EXTRACTOR_INSTRUCTIONS,
+          input: prepared.input,
+          reasoning: { effort: "low" },
+          max_output_tokens: 5_000,
+          store: false,
+          ...(options.safetyIdentifier
+            ? { safety_identifier: options.safetyIdentifier }
+            : {}),
+          text: {
+            format: zodTextFormat(requirementSetSchema, "requirement_set"),
+            verbosity: "low",
+          },
+        },
+        { signal, timeout: MODEL_TIMEOUT_MS },
+      ),
+      { signal: options.signal },
     );
+  } catch (error) {
+    throw classifyModelError(error);
   }
 
   const refusal = findRefusal(response);
   if (refusal) {
-    throw new RequirementExtractionError(
-      "MODEL_REFUSAL",
-      `GPT-5.6 refused the extraction: ${refusal}`,
-    );
+    throw new ModelOperationError("refusal", "GPT-5.6 refused the extraction.", {
+      requestId: response._request_id ?? response.id,
+    });
   }
   if (!response.output_parsed) {
-    throw new RequirementExtractionError(
-      "MODEL_EMPTY_OUTPUT",
+    throw new ModelOperationError(
+      "invalid_output",
       "GPT-5.6 returned no structured requirement set.",
+      { requestId: response._request_id ?? response.id },
     );
   }
 
   try {
-    return enforceRequirementTraceability(
+    const requirements = enforceRequirementTraceability(
       enforceArtifactId(response.output_parsed, prepared.artifactId),
       document,
     );
+    return {
+      requirements,
+      metadata: {
+        model: response.model ?? EXTRACTION_MODEL,
+        responseId: response.id ?? null,
+        durationMs: Date.now() - startedAt,
+        usage: response.usage
+          ? {
+              inputTokens: response.usage.input_tokens ?? 0,
+              outputTokens: response.usage.output_tokens ?? 0,
+              totalTokens: response.usage.total_tokens ?? 0,
+            }
+          : null,
+      },
+    };
   } catch {
-    throw new RequirementExtractionError(
-      "MODEL_INVALID_OUTPUT",
+    throw new ModelOperationError(
+      "invalid_output",
       "GPT-5.6 returned a requirement set that did not match the schema.",
+      { requestId: response._request_id ?? response.id },
     );
   }
 }

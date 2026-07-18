@@ -25,10 +25,11 @@ CrossReady verifies that claims and evidence agree across artifacts.
 ## MVP workflow
 
 1. Add a requirements document and a submission ZIP.
-2. Run deterministic checks on file inventory, hashes, links, and PDF metadata.
-3. Use GPT-5.6 to extract atomic requirements and cross-artifact claims.
+2. Run deterministic checks on file inventory, hashes, manifest claims, and
+   package safety.
+3. Use GPT-5.6 to extract atomic requirements and compare bounded text evidence.
 4. Review findings as `PROVEN`, `MISSING`, `CONTRADICTED`, or `NEEDS_HUMAN`.
-5. Open the exact page, file, line, or URL that supports each finding.
+5. Inspect the exact file/line locator and excerpt that supports each finding.
 
 CrossReady never silently edits artifacts and never submits on a user's behalf.
 
@@ -60,7 +61,7 @@ The API key must never be exposed to the browser.
 - [x] Scope and approval boundaries defined
 - [x] Requirement and audit result schemas drafted
 - [x] Intentionally inconsistent sample package designed
-- [ ] End-to-end audit implementation
+- [x] End-to-end audit implementation
 - [ ] Public deployment
 - [ ] Demo video and Devpost submission
 
@@ -80,7 +81,7 @@ node scripts/validate_day1.mjs
 - [x] Constrain model output with the canonical Zod requirement schema
 - [x] Add honest `sample` and `scanner_only` modes when no API key is present
 - [x] Connect the upload form and bundled broken-sample flow
-- [ ] Run a live GPT-5.6 smoke test with a server-side API key
+- [x] Run a live GPT-5.6 smoke test with a server-side API key
 
 Run the automated scanner and extraction-contract tests:
 
@@ -93,6 +94,33 @@ Run the app without an API key and choose **Load broken sample** to test the
 complete local sample flow. To test live extraction, copy `project/.env.example`
 to `project/.env.local`, add `OPENAI_API_KEY` locally, and restart the app. Never
 put the key in a browser variable or commit it.
+
+## Deep-audit milestone - cross-check, evidence, cost, and errors
+
+- [x] Generate real GPT-5.6 findings from requirements, ZIP text previews, and
+  optional submission copy
+- [x] Complete a paid live end-to-end run: 14 requirements, 14 findings, and
+  21 server-computed line references
+- [x] Override model output with deterministic manifest/hash facts
+- [x] Accept model evidence only when the artifact ID and exact excerpt verify
+- [x] Downgrade unverifiable, truncated, binary, PDF, visual, or external
+  evidence to `NEEDS_HUMAN`
+- [x] Return the canonical 12-finding sample report without spending API credit
+- [x] Open every finding in a keyboard-accessible evidence detail dialog
+- [x] Add 60-second per-call, 115-second whole-audit, and 125-second browser
+  timeouts with cancel/retry propagation
+- [x] Distinguish authentication, quota, rate-limit, timeout, server, refusal,
+  request, and invalid-output failures
+- [x] Limit paid runs per client and per server-process day
+- [x] Limit one audit to 256 KiB text rules, 4 MiB detected 40-page PDFs, and
+  5,000/7,000 model output tokens
+- [x] Limit active upload/ZIP work to two requests per server instance
+- [x] Reject multipart bodies that exceed 20 MiB even without `Content-Length`
+
+The built-in daily counter is intentionally lightweight and process-local for
+the hackathon demo. Before a multi-instance public launch, back it with durable
+shared storage or a platform firewall and keep the OpenAI project spending cap
+as the final cost boundary.
 
 ## Deadline
 

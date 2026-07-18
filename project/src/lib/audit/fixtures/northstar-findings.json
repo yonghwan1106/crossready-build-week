@@ -1,0 +1,338 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixture": "CrossReady_Broken_Submission.zip",
+  "expectedFindings": [
+    {
+      "id": "FIND-001",
+      "requirementIds": ["REQ-001"],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "Configured model contradicts submitted model",
+      "evidence": [
+        {
+          "artifactId": "submission/description.md",
+          "locatorType": "line",
+          "locator": "line 3",
+          "excerpt": "CrossReady uses GPT-5.6 to compare every artifact in a high-stakes submission.",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "README.md",
+          "locatorType": "line",
+          "locator": "line 3",
+          "excerpt": "CrossReady uses `gpt-5.6` through the Responses API for semantic comparison.",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "repository/src/config.ts",
+          "locatorType": "line",
+          "locator": "line 4",
+          "excerpt": "semanticAuditModel: \"gpt-4.1-mini\"",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "docs/technical-overview_FINAL_v3.pdf",
+          "locatorType": "page",
+          "locator": "page 2 text layer",
+          "excerpt": "Semantic audit\ngpt-4.1-mini\nModel extracted",
+          "factType": "deterministic"
+        }
+      ]
+    },
+    {
+      "id": "FIND-002",
+      "requirementIds": ["REQ-002"],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "Video metadata violates all three demo requirements",
+      "evidence": [
+        {
+          "artifactId": "submission/description.md",
+          "locatorType": "line",
+          "locator": "line 13",
+          "excerpt": "- Demo video: public, narrated, 2 minutes 42 seconds",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "video/demo-metadata.json",
+          "locatorType": "line",
+          "locator": "lines 3-5",
+          "excerpt": "\"visibility\": \"private\",\n  \"durationSeconds\": 196,\n  \"audioTrackPresent\": false",
+          "factType": "user_supplied"
+        }
+      ]
+    },
+    {
+      "id": "FIND-003",
+      "requirementIds": ["REQ-003"],
+      "status": "CONTRADICTED",
+      "severity": "high",
+      "title": "Evaluation metrics disagree across artifacts",
+      "evidence": [
+        {
+          "artifactId": "submission/description.md",
+          "locatorType": "line",
+          "locator": "line 4",
+          "excerpt": "Our evaluation achieved **96% contradiction recall across 120 packages**.",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "README.md",
+          "locatorType": "line",
+          "locator": "lines 7-8",
+          "excerpt": "- Contradiction recall: 96%\n- Evaluation set: 120 packages",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "docs/technical-overview_FINAL_v3.pdf",
+          "locatorType": "page",
+          "locator": "page 1 text layer",
+          "excerpt": "94%\nContradiction recall\n80\nEvaluated packages",
+          "factType": "deterministic"
+        }
+      ]
+    },
+    {
+      "id": "FIND-004",
+      "requirementIds": ["REQ-004"],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "FINAL v3 filename contains a v2.1 report",
+      "evidence": [
+        {
+          "artifactId": "manifest.json",
+          "locatorType": "line",
+          "locator": "line 3",
+          "excerpt": "\"packageName\": \"CrossReady_FINAL_v3\"",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "docs/technical-overview_FINAL_v3.pdf",
+          "locatorType": "page",
+          "locator": "page 1 text layer",
+          "excerpt": "Document version 2.1 - prepared before the final evaluation run.",
+          "factType": "deterministic"
+        }
+      ]
+    },
+    {
+      "id": "FIND-005",
+      "requirementIds": ["REQ-005"],
+      "status": "MISSING",
+      "severity": "blocker",
+      "title": "Reserved invalid domain cannot provide a public demo",
+      "evidence": [
+        {
+          "artifactId": "submission/description.md",
+          "locatorType": "line",
+          "locator": "line 12",
+          "excerpt": "- Live demo: https://crossready-demo.example.invalid",
+          "factType": "user_supplied"
+        }
+      ]
+    },
+    {
+      "id": "FIND-006",
+      "requirementIds": ["REQ-006"],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "Manifest hashes do not match submitted bytes",
+      "evidence": [
+        {
+          "artifactId": "manifest.json",
+          "locatorType": "line",
+          "locator": "lines 6-11",
+          "excerpt": "\"path\": \"docs/technical-overview_FINAL_v3.pdf\",\n      \"sha256\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n    },\n    {\n      \"path\": \"repository/src/config.ts\",\n      \"sha256\": \"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "docs/technical-overview_FINAL_v3.pdf",
+          "locatorType": "hash",
+          "locator": "SHA-256",
+          "excerpt": "Manifest expected 0000000000000000000000000000000000000000000000000000000000000000; computed c64f923777cbc08e4c9e44f354262cf6d84eefb7d5dc7963ebab4470b04f486d.",
+          "factType": "deterministic"
+        },
+        {
+          "artifactId": "repository/src/config.ts",
+          "locatorType": "hash",
+          "locator": "SHA-256",
+          "excerpt": "Manifest expected ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff; computed 77422cd2079c7fd6445368187bf10a0316ec8514d56f6838bc7594efc1aa784b.",
+          "factType": "deterministic"
+        }
+      ]
+    },
+    {
+      "id": "FIND-007",
+      "requirementIds": ["REQ-007"],
+      "status": "CONTRADICTED",
+      "severity": "medium",
+      "title": "Claimed Evidence Graph is absent from live evidence",
+      "evidence": [
+        {
+          "artifactId": "submission/description.md",
+          "locatorType": "line",
+          "locator": "lines 6-7",
+          "excerpt": "The public product supports eight artifact types and includes an interactive\nEvidence Graph that connects every claim to its source.",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "README.md",
+          "locatorType": "line",
+          "locator": "line 16",
+          "excerpt": "- Evidence Graph",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "repository/src/config.ts",
+          "locatorType": "line",
+          "locator": "line 6",
+          "excerpt": "evidenceGraphEnabled: false",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "live/demo-snapshot.html",
+          "locatorType": "line",
+          "locator": "lines 14-17",
+          "excerpt": "<section aria-label=\"Available results\">\n        <h2>Results</h2>\n        <button type=\"button\">Export summary</button>\n      </section>",
+          "factType": "user_supplied"
+        }
+      ]
+    },
+    {
+      "id": "FIND-008",
+      "requirementIds": ["REQ-008"],
+      "status": "CONTRADICTED",
+      "severity": "blocker",
+      "title": "Submitted and deployed build identifiers disagree",
+      "evidence": [
+        {
+          "artifactId": "submission/description.md",
+          "locatorType": "line",
+          "locator": "line 9",
+          "excerpt": "- Release build: `cw-2026-07-18.3`",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "README.md",
+          "locatorType": "line",
+          "locator": "line 10",
+          "excerpt": "- Release build: `cw-2026-07-18.3`",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "repository/src/config.ts",
+          "locatorType": "line",
+          "locator": "line 2",
+          "excerpt": "buildId: \"cw-2026-07-16.2\"",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "live/demo-snapshot.html",
+          "locatorType": "line",
+          "locator": "line 13",
+          "excerpt": "<p>Build cw-2026-07-16.2</p>",
+          "factType": "user_supplied"
+        }
+      ]
+    },
+    {
+      "id": "FIND-009",
+      "requirementIds": ["REQ-009"],
+      "status": "CONTRADICTED",
+      "severity": "high",
+      "title": "Passing-test claim conflicts with machine results",
+      "evidence": [
+        {
+          "artifactId": "submission/description.md",
+          "locatorType": "line",
+          "locator": "line 10",
+          "excerpt": "- Regression status: all 43 tests pass",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "README.md",
+          "locatorType": "line",
+          "locator": "line 9",
+          "excerpt": "- Regression tests: 43 passed, 0 failed, 0 skipped",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "repository/test-results.json",
+          "locatorType": "line",
+          "locator": "lines 3-7",
+          "excerpt": "\"total\": 43,\n  \"passed\": 38,\n  \"failed\": 2,\n  \"skipped\": 3,\n  \"status\": \"failed\"",
+          "factType": "user_supplied"
+        }
+      ]
+    },
+    {
+      "id": "FIND-010",
+      "requirementIds": ["REQ-010"],
+      "status": "NEEDS_HUMAN",
+      "severity": "blocker",
+      "title": "Automatic correction setting needs runtime confirmation",
+      "evidence": [
+        {
+          "artifactId": "submission/description.md",
+          "locatorType": "line",
+          "locator": "line 11",
+          "excerpt": "- Safety: CrossReady never modifies a file without explicit user approval",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "README.md",
+          "locatorType": "line",
+          "locator": "line 19",
+          "excerpt": "- Human approval before any artifact change",
+          "factType": "user_supplied"
+        },
+        {
+          "artifactId": "repository/src/config.ts",
+          "locatorType": "line",
+          "locator": "line 7",
+          "excerpt": "autoApplyCorrections: true",
+          "factType": "user_supplied"
+        }
+      ]
+    },
+    {
+      "id": "FIND-011",
+      "requirementIds": ["REQ-011"],
+      "status": "PROVEN",
+      "severity": "low",
+      "title": "README provides a concrete sample test action",
+      "evidence": [
+        {
+          "artifactId": "README.md",
+          "locatorType": "line",
+          "locator": "line 23",
+          "excerpt": "Open the public demo and choose **Load sample audit**.",
+          "factType": "user_supplied"
+        }
+      ]
+    },
+    {
+      "id": "FIND-012",
+      "requirementIds": ["REQ-005"],
+      "status": "NEEDS_HUMAN",
+      "severity": "medium",
+      "title": "PDF text layer contains a claim absent from the rendered page",
+      "evidence": [
+        {
+          "artifactId": "docs/technical-overview_FINAL_v3.pdf",
+          "locatorType": "page",
+          "locator": "page 2 text layer",
+          "excerpt": "Public demo URL verified and reviewer access confirmed.",
+          "factType": "deterministic"
+        },
+        {
+          "artifactId": "docs/technical-overview_FINAL_v3.pdf",
+          "locatorType": "page",
+          "locator": "page 2 rendered image",
+          "excerpt": "Deterministic fixture observation: the white-on-white footer sentence is absent from the visible rendered pixels.",
+          "factType": "deterministic"
+        }
+      ]
+    }
+  ]
+}
