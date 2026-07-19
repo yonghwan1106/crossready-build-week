@@ -87,7 +87,8 @@ Codex was the primary implementation and verification workspace:
 - diagnosed the first hosting preset mismatch and verified the corrected
   production deployment.
 
-The final submission will include the primary Codex `/feedback` Session ID.
+Primary Codex `/feedback` Session ID:
+`019f722a-e88a-7d60-9bd5-fd267a70556c`.
 
 ## Human product decisions
 
@@ -124,7 +125,10 @@ These decisions are recorded in `notes/DECISIONS_2026-07-18.md` and
 - [x] End-to-end audit implementation
 - [x] Public deployment and reviewer flow verified
 - [x] Upload-ready narrated demo MP4
-- [ ] Public YouTube upload and Devpost submission
+- [x] Public YouTube upload
+- [x] Devpost project creation and final submission
+
+Final Devpost project: <https://devpost.com/software/crossready>
 
 Validate the Day 1 schemas and intentionally broken fixture:
 

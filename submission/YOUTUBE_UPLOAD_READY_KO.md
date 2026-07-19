@@ -1,5 +1,11 @@
 # CrossReady YouTube 업로드 안내
 
+## 게시 완료
+
+- 공개 주소: <https://youtu.be/IAyBWqYpfhw>
+- 공개 제목: `CrossReady — AI Submission Evidence Audit | OpenAI Build Week 2026`
+- 공개 채널 목록과 비로그인 재생 화면에서 확인 완료
+
 ## 업로드할 파일
 
 `submission/CrossReady_Demo_Final_106s.mp4`
@@ -40,8 +46,8 @@ Built for OpenAI Build Week 2026 — Work & Productivity.
 7. 공개 상태는 심사위원이 로그인 없이 볼 수 있도록 **공개(Public)**로
    선택합니다.
 8. 게시가 끝나면 YouTube 주소를 복사합니다.
-9. `submission/DEVPOST_DRAFT.md`의 Demo video TODO를 그 주소로
-   바꿉니다.
+9. 해당 주소를 `submission/DEVPOST_DRAFT.md`의 Demo video 항목에
+   기록합니다. 현재 공개 주소는 이미 반영했습니다.
 
 공식 규칙상 미등록이나 일부 공개가 아니라 누구나 볼 수 있는
 **공개(Public)** 상태가 가장 안전합니다.

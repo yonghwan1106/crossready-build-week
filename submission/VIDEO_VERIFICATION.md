@@ -32,7 +32,16 @@ Verified: 2026-07-19 KST
    it to standard 48 kHz, decoded the complete final file, and regenerated the
    final hash.
 
-## Remaining external step
+## Public YouTube verification
 
-The video file is complete. It still needs to be uploaded as a publicly visible
-YouTube video, and that URL must replace the TODO in `submission/DEVPOST_DRAFT.md`.
+- Published URL: <https://youtu.be/IAyBWqYpfhw>
+- Public title: `CrossReady — AI Submission Evidence Audit | OpenAI Build Week 2026`
+- Verified without relying on the uploader's Studio session
+- Visible in the public channel video list
+- Public player duration: 1:46
+
+The video URL was added to the Devpost project and the final submission was
+completed:
+
+- Devpost project: <https://devpost.com/software/crossready>
+- Submission status verified as `Submitted` on 2026-07-19 KST

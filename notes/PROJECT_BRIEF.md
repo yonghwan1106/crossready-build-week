@@ -122,7 +122,11 @@ one finding from red to green after the artifact is corrected.
 - [x] Error and empty states
 - [x] Public deployment
 - [x] English Devpost description
-- [ ] Hero image and screenshots
+- [x] Devpost hero/thumbnail image
+- [x] Three submission screenshots
 - [x] Upload-ready narrated MP4 under three minutes
-- [ ] Public YouTube video URL
-- [x] Final `/feedback` session ID and submission evidence
+- [x] Public YouTube video URL
+- [x] Final `/feedback` session ID
+- [x] Final Devpost submission confirmation evidence
+
+Submitted project: <https://devpost.com/software/crossready>
