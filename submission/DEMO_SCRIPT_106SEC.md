@@ -8,6 +8,10 @@ The public build intentionally runs the bundled sample without an OpenAI API
 key. The narration clearly separates that free reviewer flow from the measured,
 controlled GPT-5.6 run shown near the end.
 
+The recording preserves the earlier button labels **Load broken sample** and
+**Run evidence audit**; the current build uses **Try the broken sample** and
+**Run sample audit**.
+
 ## Final timeline and narration
 
 | Time | Screen action | Final English narration |
@@ -30,8 +34,8 @@ controlled GPT-5.6 run shown near the end.
 - The free public sample is explicitly labeled as not calling GPT.
 - The actual paid GPT-5.6 run is shown as separate measured proof.
 - Codex and GPT-5.6 roles are described concretely.
-- The narrated count of 64 tests is correct for the recording time. Three final
-  hardening tests were added afterward, bringing the current repository total
-  to 67.
+- The narrated count of 64 tests is correct for the recording time. Later
+  consistency-hardening tests are reflected in the current verified total in
+  the root README.
 - No background music or third-party media was added.
 - The end card holds the public URL for more than two seconds.

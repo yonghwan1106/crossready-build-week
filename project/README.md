@@ -14,20 +14,25 @@ This repository contains the working CrossReady prototype for OpenAI Build Week
 
 The production reviewer build is available at
 **[crossready-build-week.vercel.app](https://crossready-build-week.vercel.app/)**.
-Select **Try the broken sample**, choose **Run sample audit**, and open any
-finding to inspect its source locations and excerpts. No account is required.
+Select **Try the broken sample**, leave the optional submission-copy field
+blank, choose **Run sample audit**, and open any finding to inspect its source
+locations and excerpts. No account is required.
 
-The public deployment intentionally has no `OPENAI_API_KEY`; the bundled sample
-therefore provides the complete 12-finding demo without paid API usage. The real
-GPT-5.6 path and its measured results are documented below.
+The public deployment intentionally has no `OPENAI_API_KEY`. The 12-finding
+saved-answer demo is used only when both bundled fingerprints match and optional
+submission copy is blank. Entering copy exits saved-answer mode; a keyless
+server returns scanner-only facts, while a configured server follows the live
+path. The real GPT-5.6 path and its measured results are documented below.
 
 ## Current scope
 
 - Real requirements-file and submission-ZIP upload
-- Safe ZIP inventory, SHA-256, text preview, and manifest checks
+- Safe ZIP inventory, SHA-256, bounded text previews, listed manifest-hash
+  verification, and unlisted-file coverage reporting
 - GPT-5.6 requirement extraction through the Responses API
 - GPT-5.6 cross-artifact findings constrained by Structured Outputs
-- Server-verified evidence excerpts with deterministic manifest overrides
+- Server-verified evidence excerpts with deterministic manifest-integrity and
+  completeness overrides
 - Submission-copy comparison and clickable finding details
 - Honest bundled-sample and file-scan-only modes when no API key is present
 - Four-state audit summary: Proven, Contradicted, Missing, Needs Review
@@ -40,7 +45,9 @@ The bundled broken sample returns 12 complete answer-key findings without an API
 call. A normal upload performs a real requirements extraction and semantic
 cross-audit when a server-side API key is configured. Model evidence is accepted
 only when its artifact ID is allowlisted and its excerpt occurs in the supplied
-artifact text; uncertain results are downgraded to Needs Review.
+artifact text. Semantic contradictions require two distinct artifacts.
+Deterministic manifest findings use direct claim-to-byte and coverage facts;
+uncertain model results are downgraded to Needs Review.
 
 ## Local development
 
@@ -69,9 +76,10 @@ npm run build
 npm run start
 ```
 
-The current verification baseline is 67 passing automated tests plus a clean
-lint, TypeScript, production-build, public-browser, and Vercel runtime-log
-check.
+The current local verification baseline is 91 passing automated tests plus
+clean lint, TypeScript, and production-build checks. Public-browser and Vercel
+runtime checks are recorded for the submitted deployment; the new local
+hardening changes require redeployment before those live checks can be renewed.
 
 ## Architecture
 
@@ -113,8 +121,10 @@ requests parse uploads or scan ZIPs concurrently per instance by default; the
 - PDF excerpts and page locators are model-extracted and explicitly require
   human page confirmation; CrossReady does not claim independent PDF quote
   verification.
-- PDFs, images, live URLs, runtime behavior, and truncated previews are not
-  treated as fully verified; affected findings are marked Needs Review.
+- When ZIP evidence is truncated or unavailable to the model, model-produced
+  `PROVEN` and `MISSING` results are not treated as fully verified and are
+  downgraded to Needs Review. PDFs, images, live URLs, and runtime behavior are
+  not independently verified.
 - The built-in daily counter is process-local. A public multi-instance
   deployment should add a durable shared rate-limit store or platform firewall,
   while retaining an OpenAI project spending limit as the hard budget.

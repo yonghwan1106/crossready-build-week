@@ -98,7 +98,8 @@ function isManifest(value: unknown): boolean {
     isFiniteNumber(value.checked) &&
     isFiniteNumber(value.matches) &&
     Array.isArray(value.mismatches) &&
-    value.mismatches.every(isManifestMismatch)
+    value.mismatches.every(isManifestMismatch) &&
+    isStringArray(value.unlistedPaths)
   );
 }
 

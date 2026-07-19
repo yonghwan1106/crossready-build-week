@@ -28,6 +28,7 @@ function validSuccess(): AuditSuccess {
         checked: 0,
         matches: 0,
         mismatches: [],
+        unlistedPaths: ["README.md"],
       },
     },
     requirements: null,

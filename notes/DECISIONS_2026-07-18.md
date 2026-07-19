@@ -14,8 +14,9 @@ product judgment from coding assistance.
 4. **Core promise:** every finding must point to inspectable evidence.
 5. **Authority boundary:** the product reports and explains; the user decides
    and edits.
-6. **Model boundary:** GPT-5.6 performs semantic and multimodal extraction.
-   Deterministic code owns byte-level and protocol-level facts.
+6. **Model boundary:** GPT-5.6 extracts requirements from rules text or PDF and
+   performs semantic comparison over supplied text evidence. Deterministic code
+   owns byte-level facts.
 7. **Demo strategy:** a fictional, intentionally inconsistent submission bundle
    provides a repeatable no-login test.
 8. **Scope freeze:** no authentication, persistence, team collaboration,
@@ -25,11 +26,12 @@ product judgment from coding assistance.
 
 The failure mode is not merely a missing field. High-stakes packages are
 assembled from independent surfaces that can drift: a PDF, README, repository,
-live product, video, and final description. CrossReady makes that hidden drift
-visible and traceable.
+live product, video, and final description. The MVP represents live-product and
+video claims through packaged text snapshots or metadata; it does not fetch or
+play them. CrossReady makes that hidden drift visible and traceable.
 
 ## Success test
 
 The project is demo-ready when a judge can load the sample, see at least five
-real contradictions in under one minute, open the supporting evidence, and
-understand why GPT-5.6 was required.
+seeded cross-file contradictions in under one minute, open the supporting
+evidence, and understand why GPT-5.6 was required.

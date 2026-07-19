@@ -6,8 +6,8 @@ CrossReady
 
 ## One-line tagline
 
-CI for final submission packages—verify documents, code, manifests, and exact
-file bytes before you submit.
+A CI-style preflight for final submission packages—verify supplied documents,
+code snapshots, manifest coverage, and exact file bytes before you submit.
 
 ## Track
 
@@ -23,10 +23,11 @@ Work & Productivity
 
 ## Inspiration
 
-CrossReady is CI for final submission packages. Unlike a document-only checker,
-it examines the entire handoff: rules, submission copy, ZIP contents, source
-configuration, manifests, and exact file hashes. GPT-5.6 finds semantic
-conflicts; deterministic code verifies whether the cited evidence exists.
+CrossReady is a CI-style preflight check, not a CI-provider integration. It
+examines the supplied handoff: rules, optional submission copy, ZIP contents,
+text-readable source configuration, manifest integrity and coverage, and exact
+file hashes. GPT-5.6 finds semantic conflicts; deterministic code verifies
+whether the cited evidence exists.
 
 A high-stakes submission can pass every individual checklist and still fail as
 a package.
@@ -65,7 +66,8 @@ CrossReady then:
 
 1. safely inventories the ZIP without executing its contents;
 2. computes SHA-256 hashes for the archive and individual files;
-3. checks `manifest.json` claims against the submitted bytes;
+3. checks listed `manifest.json` hash claims against submitted bytes and
+   separately reports submitted files omitted from the manifest;
 4. extracts atomic, testable requirements with GPT-5.6;
 5. compares those requirements with bounded textual evidence from the package;
 6. classifies each requirement as `PROVEN`, `CONTRADICTED`, `MISSING`, or
@@ -75,9 +77,10 @@ CrossReady then:
 
 The server does not accept a model-produced citation simply because it looks
 plausible. The artifact ID must be known, and the quoted excerpt must exist in
-the supplied text. A contradiction requires verified evidence from at least two
-distinct artifacts. Deterministic manifest and hash results override model
-output.
+the supplied text. A model-produced semantic contradiction requires verified
+evidence from at least two distinct artifacts. Deterministic manifest integrity
+and completeness findings are computed separately from manifest claims and
+exact file bytes.
 
 CrossReady never silently rewrites files and never submits anything on the
 user's behalf.
@@ -90,8 +93,8 @@ We designed CrossReady as several trust layers instead of one large prompt.
 
 The ZIP scanner enforces archive, entry-count, expanded-size, duplicate-path,
 encrypted-entry, and path-traversal limits. It creates a file inventory,
-computes SHA-256 hashes, extracts bounded text previews, and compares manifest
-claims with the actual bytes.
+computes SHA-256 hashes, extracts bounded text previews, verifies listed
+manifest claims, and reports files missing from the manifest.
 
 ### 2. GPT-5.6 reasoning layer
 
@@ -109,8 +112,10 @@ Before a model finding reaches the interface, CrossReady:
 - verifies that cited text occurs in the referenced artifact preview;
 - computes line locators on the server;
 - requires evidence from two artifacts before accepting a contradiction;
-- replaces manifest conclusions with deterministic byte-level results; and
-- downgrades unverifiable evidence to `NEEDS_HUMAN`.
+- replaces manifest conclusions with deterministic byte-level and coverage
+  results; and
+- downgrades model-produced `PROVEN` and `MISSING` results to `NEEDS_HUMAN`
+  when submitted evidence is incomplete.
 
 ### 4. Review interface
 
@@ -188,10 +193,11 @@ the problem, track, four-state result model, evidence-first standard,
 no-silent-rewrite rule, and public-demo cost boundary. Codex accelerated
 implementation and verification within those decisions.
 
-The demo was recorded with **64 passing automated tests**. Three final hardening
-tests were added after recording, so the current baseline is **67 passing
-automated tests**, together with clean lint, TypeScript, production-build,
-browser-flow, and deployed-runtime checks.
+The demo was recorded with **64 passing automated tests**. Final consistency
+hardening increased the current baseline to **91 passing automated tests**,
+together with clean lint, TypeScript, and production-build checks. Browser-flow
+and deployed-runtime checks remain recorded for the submitted deployment and
+must be renewed after these local hardening changes are redeployed.
 
 ## Challenges we ran into
 
@@ -224,20 +230,23 @@ added explicit input, output, time, rate, concurrency, and daily limits.
 ### Demonstrating the product publicly without exposing paid credit
 
 We intentionally deployed the reviewer build without an OpenAI API key. The
-public sample demonstrates the complete interaction and evidence-review
-experience through a fingerprint-locked bundled answer key, while the paid
-GPT-5.6 path was measured separately in a controlled local run.
+public sample demonstrates the saved-answer interaction only when the exact
+bundled files are used and optional submission copy is blank. Entering copy
+exits saved-answer mode. The paid GPT-5.6 path was measured separately in a
+controlled local run.
 
 ## Accomplishments that we are proud of
 
 - Built a complete rules-to-evidence audit workflow rather than a static mockup.
 - Verified a real two-stage GPT-5.6 run end to end.
 - Made every finding inspectable through exact source evidence.
-- Added deterministic byte-level manifest checks that can override model output.
+- Added deterministic manifest integrity and completeness checks that can
+  override model output.
 - Prevented unverifiable claims from being presented as facts.
 - Preserved useful partial results when a model stage fails.
 - Created a no-login, no-cost reviewer path.
-- Reached 67 passing automated tests plus clean build and browser verification.
+- Reached 91 passing automated tests plus clean lint, TypeScript, and production
+  build verification.
 - Kept the user in control: CrossReady reports discrepancies but does not
   rewrite or submit their work.
 
@@ -281,22 +290,23 @@ No account or API key is required.
 
 1. Open <https://crossready-build-week.vercel.app/>.
 2. Select **Try the broken sample**.
-3. Confirm that both required files are selected and the interface shows
+3. Leave the optional submission-copy field blank.
+4. Confirm that both required files are selected and the interface shows
    `2 / 2 added`.
-4. Select **Run sample audit**.
-5. Review the 12 findings: 1 Proven, 8 Contradicted, 1 Missing, and 2 Needs
+5. Select **Run sample audit**.
+6. Review the 12 findings: 1 Proven, 8 Contradicted, 1 Missing, and 2 Needs
    review.
-6. Open **Configured model contradicts submitted model**.
-7. Inspect its four evidence records:
+7. Open **Configured model contradicts submitted model**.
+8. Inspect its four evidence records:
    - `submission/description.md`
    - `README.md`
    - `repository/src/config.ts`
    - `docs/technical-overview_FINAL_v3.pdf`
-8. Notice that the submission-facing files claim GPT-5.6 while the sample
+9. Notice that the submission-facing files claim GPT-5.6 while the sample
    configuration and PDF identify `gpt-4.1-mini`.
-9. Close the dialog with the x button, by selecting the background, or by
+10. Close the dialog with the x button, by selecting the background, or by
    pressing Escape.
-10. Scroll through the ZIP inventory, manifest results, and bundled
+11. Scroll through the ZIP inventory, manifest results, and bundled
     requirements.
 
 The reviewer flow is intentionally deterministic and free. It does not consume
@@ -323,9 +333,10 @@ OpenAI credit.
 
 The public deployment intentionally does **not** contain an OpenAI API key. Its
 bundled broken-sample path uses a curated, fingerprint-locked 12-finding answer
-key and does not call GPT-5.6. It demonstrates the actual file-loading,
-ZIP-scanning, result, and evidence-review interface without consuming paid
-credit.
+key only when optional submission copy is blank, and it does not call GPT-5.6.
+Entering copy exits saved-answer mode. The sample demonstrates the actual
+file-loading, ZIP-scanning, result, and evidence-review interface without
+consuming paid credit.
 
 The live GPT-5.6 path was tested separately in a controlled local environment.
 An initial measured run produced 14 requirements, 14 findings, 21

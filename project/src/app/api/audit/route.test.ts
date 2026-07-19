@@ -132,6 +132,89 @@ describe("POST /api/audit", () => {
     expect(payload.warnings.join(" ")).toContain("GPT-5.6 was not called");
   });
 
+  it("treats whitespace-only submission copy as empty for the bundled answer key", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "");
+    const { rules, archive } = await sampleFiles();
+
+    const response = await POST(
+      auditRequest(rules, archive, true, "  \n\t  "),
+    );
+    const payload = await response.json();
+
+    expect(payload).toMatchObject({
+      ok: true,
+      mode: "sample",
+      report: {
+        summary: {
+          proven: 1,
+          missing: 1,
+          contradicted: 8,
+          needsHuman: 2,
+        },
+      },
+    });
+    expect(payload.report.findings).toHaveLength(12);
+  });
+
+  it("never returns the fixed sample answer when submission copy was edited and no key exists", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "");
+    const { rules, archive } = await sampleFiles();
+
+    const response = await POST(
+      auditRequest(
+        rules,
+        archive,
+        true,
+        "Edited reviewer claim that must be checked.",
+      ),
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      ok: true,
+      mode: "scanner_only",
+      model: null,
+      requirements: null,
+    });
+    expect(payload.report.findings).not.toHaveLength(12);
+    expect(payload.warnings.join(" ")).toContain(
+      "bundled sample answer set was skipped",
+    );
+    expect(payload.warnings.join(" ")).toContain("submission copy");
+  });
+
+  it("routes edited sample copy through the paid path when a key exists", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-test-not-called");
+    vi.stubEnv("CROSSREADY_LIVE_AUDIT_CLIENT_LIMIT", "1");
+    vi.stubEnv("CROSSREADY_LIVE_AUDIT_DAILY_LIMIT", "100");
+    const clientIp = "203.0.113.91";
+    const identityRequest = new Request("http://localhost/api/audit", {
+      headers: { "x-vercel-forwarded-for": clientIp },
+    });
+    expect(
+      consumeLiveAuditBudget(deriveAuditIdentity(identityRequest)).allowed,
+    ).toBe(true);
+
+    const { rules, archive } = await sampleFiles();
+    const request = auditRequest(
+      rules,
+      archive,
+      true,
+      "Edited reviewer claim that requires GPT-5.6.",
+    );
+    request.headers.set("x-vercel-forwarded-for", clientIp);
+
+    const response = await POST(request);
+    const payload = await response.json();
+
+    expect(response.status).toBe(429);
+    expect(payload).toMatchObject({
+      ok: false,
+      error: { code: "RATE_LIMITED" },
+    });
+  });
+
   it("falls back to an honest scanner-only result when no key exists", async () => {
     vi.stubEnv("OPENAI_API_KEY", "");
     const { archive } = await sampleFiles();

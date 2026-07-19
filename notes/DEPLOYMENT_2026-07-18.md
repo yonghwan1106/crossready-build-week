@@ -13,8 +13,8 @@
 
 The production project has no environment variables and no
 `OPENAI_API_KEY`. Public visitors can use the bundled sample flow but cannot
-start a paid GPT request. The separately verified local GPT-5.6 path remains
-available for the narrated demo and technical evidence.
+start a paid GPT request. The separately verified local GPT-5.6 path was
+exercised for the narrated demo and retained as technical evidence.
 
 ## Controlled GPT-5.6 reviewer proof
 
@@ -47,7 +47,7 @@ screenshot, and the production deployment remains keyless.
 - Sample findings: 12
 - Status counts: 1 Proven, 8 Contradicted, 1 Missing, 2 Needs Human
 - First finding dialog: four exact evidence records displayed
-- Prepared PDF observations are labeled `준비된 샘플 정답`, while hashes
+- Prepared PDF observations are labeled `Bundled sample answer`, while hashes
   remain labeled as directly calculated facts
 - Browser console errors: 0
 - Runtime error/fatal logs: 0
@@ -56,8 +56,9 @@ screenshot, and the production deployment remains keyless.
 ## Reviewer path
 
 1. Open the public URL.
-2. Select **Load broken sample**.
-3. Select **Run evidence audit**.
+2. Select **Try the broken sample**.
+3. Leave the optional submission-copy field blank and select **Run sample
+   audit**.
 4. Open **Configured model contradicts submitted model**.
 5. Review the four cited artifacts, exact locators, excerpts, and next action.
 
@@ -66,6 +67,6 @@ screenshot, and the production deployment remains keyless.
 The first remote build completed while the new Vercel project still used the
 generic static-site preset, so its alias returned `404 NOT_FOUND`. The project
 framework was corrected to Next.js and that source was successfully
-redeployed. The reviewer-ready source commit recorded above was later deployed
-through the corrected Next.js configuration and is the current verified
-production release.
+redeployed. The source commit recorded above was the verified production
+release at the time of this 2026-07-18 record. Later source changes are tracked
+separately in Git and require a fresh deployment verification.

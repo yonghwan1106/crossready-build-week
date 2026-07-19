@@ -155,8 +155,18 @@ function checkManifest(
   manifestBytes: Uint8Array | null,
   entryHashes: ReadonlyMap<string, string>,
 ): ManifestResult {
+  const submittedPaths = [...entryHashes.keys()]
+    .filter((entryPath) => entryPath !== "manifest.json")
+    .sort((left, right) => left.localeCompare(right));
+
   if (!manifestBytes) {
-    return { present: false, checked: 0, matches: 0, mismatches: [] };
+    return {
+      present: false,
+      checked: 0,
+      matches: 0,
+      mismatches: [],
+      unlistedPaths: submittedPaths,
+    };
   }
 
   const claims = parseManifestClaims(manifestBytes);
@@ -173,11 +183,13 @@ function checkManifest(
           reason: "invalid_manifest",
         },
       ],
+      unlistedPaths: submittedPaths,
     };
   }
 
   let matches = 0;
   const mismatches: ManifestMismatch[] = [];
+  const listedPaths = new Set<string>();
 
   for (const claim of claims) {
     const expected = claim.sha256.toLowerCase();
@@ -192,6 +204,7 @@ function checkManifest(
       });
       continue;
     }
+    listedPaths.add(claim.path);
 
     if (!/^[a-f0-9]{64}$/.test(expected)) {
       mismatches.push({
@@ -228,6 +241,9 @@ function checkManifest(
     checked: claims.length,
     matches,
     mismatches,
+    unlistedPaths: submittedPaths.filter(
+      (submittedPath) => !listedPaths.has(submittedPath),
+    ),
   };
 }
 

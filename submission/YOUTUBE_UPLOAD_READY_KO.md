@@ -19,8 +19,8 @@ CrossReady — Evidence-Backed Submission Auditor | OpenAI Build Week 2026
 
 ## 설명란에 붙여 넣을 내용
 
-CrossReady checks whether rules, final files, code, reports, and submission
-claims all tell the same provable story.
+CrossReady checks whether supplied rules, bundled files, code snapshots,
+reports, and optional submission copy tell the same provable story.
 
 The free public reviewer flow safely reads a bundled sample and uses a verified
 answer key without calling GPT. In paid audits, GPT-5.6 extracts atomic

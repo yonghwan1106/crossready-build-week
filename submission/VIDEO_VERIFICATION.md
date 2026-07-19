@@ -17,8 +17,9 @@ Verified: 2026-07-19 KST
 - Audio level: mean -20.2 dB, maximum -1.5 dB
 - English narration: present
 - Burned-in English captions: present
-- Test-count context: the video was recorded at 64 passing tests; three final
-  hardening tests were added afterward, bringing the repository total to 67
+- Test-count context: the video was recorded at 64 passing tests. Later
+  consistency-hardening tests are tracked in the current verified total in the
+  root README
 - Background music: none
 - Full video and audio decode: PASS, zero reported errors
 - Beginning, evidence dialog, Codex card, GPT-5.6 proof, and end card:

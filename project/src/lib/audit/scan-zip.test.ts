@@ -91,6 +91,32 @@ describe("scanZipArchive", () => {
       checked: 1,
       matches: 1,
       mismatches: [],
+      unlistedPaths: [],
+    });
+  });
+
+  it("tracks ZIP files omitted from the manifest without counting manifest.json itself", async () => {
+    const content = "hello CrossReady";
+    const expected = createHash("sha256").update(content).digest("hex");
+    const bytes = await makeZip([
+      { path: "README.md", text: content },
+      { path: "evidence/omitted.txt", text: "not listed in manifest" },
+      {
+        path: "manifest.json",
+        text: JSON.stringify({
+          files: [{ path: "README.md", sha256: expected }],
+        }),
+      },
+    ]);
+
+    const inventory = await scanZipArchive("submission.zip", bytes);
+
+    expect(inventory.manifest).toMatchObject({
+      present: true,
+      checked: 1,
+      matches: 1,
+      mismatches: [],
+      unlistedPaths: ["evidence/omitted.txt"],
     });
   });
 
@@ -114,6 +140,7 @@ describe("scanZipArchive", () => {
           reason: "invalid_manifest",
         },
       ],
+      unlistedPaths: ["README.md"],
     });
   });
 

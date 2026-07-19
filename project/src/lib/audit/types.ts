@@ -34,6 +34,7 @@ export interface ManifestResult {
   checked: number;
   matches: number;
   mismatches: ManifestMismatch[];
+  unlistedPaths: string[];
 }
 
 export interface ArchiveInventory {

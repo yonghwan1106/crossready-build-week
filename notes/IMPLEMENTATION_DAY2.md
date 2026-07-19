@@ -1,5 +1,9 @@
 # CrossReady - Day 2 Implementation Record
 
+> Historical milestone record. The final prototype later reduced requirement
+> extraction to a 5,000-token ceiling, added a separate 7,000-token cross-audit
+> stage, and tightened the saved-sample contract described below.
+
 ## Working milestone
 
 Connect two real parts of the product:
@@ -28,7 +32,8 @@ The server uses:
 
 - model `gpt-5.6`;
 - `store: false`;
-- an 8,000-token output ceiling and a maximum of 75 extracted requirements;
+- a 5,000-token requirement-extraction output ceiling and a maximum of 75
+  extracted requirements;
 - Structured Outputs generated from the repository Zod schema; and
 - a prompt boundary that says document content is data, not instructions.
 
@@ -40,13 +45,19 @@ The API key is read only inside the server path. It is never sent to the browser
 
 ## Honest no-key behavior
 
-- `sample`: returned only when both uploaded files match the bundled sample
-  SHA-256 fingerprints. The saved sample requirements are used and GPT-5.6 is
-  explicitly reported as not called.
+- `sample`: returned only when demo mode is requested, both uploaded files match
+  the bundled SHA-256 fingerprints, and the trimmed optional submission copy is
+  empty. The saved requirements and 12-finding answer key are used, and GPT-5.6
+  is explicitly reported as not called.
 - `scanner_only`: the ZIP scan completes, but no model requirements are
   returned or implied.
-- `live`: returned only after a real GPT-5.6 Structured Outputs response is
-  parsed successfully.
+- `live`: returned only after both real GPT-5.6 stages parse successfully.
+- `partial`: returned when requirement extraction succeeds but semantic
+  comparison fails.
+
+Entering submission copy exits saved-answer mode. With a server API key the
+request follows the live path; without one it returns honest `scanner_only`
+results.
 
 ## Verification evidence
 

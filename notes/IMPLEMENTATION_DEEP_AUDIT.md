@@ -29,15 +29,19 @@ CrossReady does not trust the second model response directly. The server:
 
 - allows only known requirement and artifact IDs;
 - requires every model evidence excerpt to occur exactly in the cited preview;
-- requires two distinct verified artifacts for a contradiction;
+- requires two distinct verified artifacts for a model-produced semantic
+  contradiction;
 - fixes the finding claim to the extracted requirement rather than model prose;
-- overrides manifest/hash findings with computed bytes; and
-- downgrades missing, truncated, binary, PDF, visual, runtime, or external
-  evidence to `NEEDS_HUMAN` when it cannot be fully verified.
+- overrides manifest integrity and completeness findings with computed facts;
+  and
+- downgrades model-produced `PROVEN` or `MISSING` results to `NEEDS_HUMAN`
+  whenever truncated or unavailable PDF, binary, image, archive, visual,
+  runtime, or external evidence leaves the audit input incomplete.
 
-The canonical broken sample remains free: exact file fingerprints unlock its
-saved 12-finding answer key with summary counts `1 / 1 / 8 / 2` for Proven,
-Missing, Contradicted, and Needs Human.
+The canonical broken sample remains free: exact file fingerprints plus an empty
+optional submission-copy field unlock its saved 12-finding answer key with
+summary counts `1 / 1 / 8 / 2` for Proven, Missing, Contradicted, and Needs
+Human. Entering copy exits saved-answer mode.
 
 ## Clickable evidence
 
@@ -77,7 +81,7 @@ project spending cap.
 Model failures are classified as authentication, quota, rate limit, timeout,
 server, refusal, invalid output, bad request, or unknown. The server logs only
 the safe category, retryability, operation, and request ID. The browser shows a
-plain-language Korean explanation, an action, retry availability, and the
+plain-language English explanation, an action, retry availability, and the
 request ID when available.
 
 If requirement extraction succeeds but semantic comparison fails, the response

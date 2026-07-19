@@ -87,7 +87,7 @@ function sha256(bytes: Uint8Array): string {
 
 function optionalSubmissionCopy(formData: FormData): string | undefined {
   const value = formData.get("submissionCopy");
-  if (value === null || value === "") return undefined;
+  if (value === null) return undefined;
   if (typeof value !== "string") {
     throw new AuditInputError(
       "SUBMISSION_COPY_TYPE",
@@ -101,6 +101,7 @@ function optionalSubmissionCopy(formData: FormData): string | undefined {
       413,
     );
   }
+  if (value.trim() === "") return undefined;
   return value;
 }
 
@@ -344,7 +345,7 @@ export async function POST(request: Request): Promise<Response> {
       sha256(rulesBytes) === NORTHSTAR_RULES_SHA256 &&
       inventory.archiveSha256 === NORTHSTAR_ARCHIVE_SHA256;
 
-    if (demoMode && isCanonicalSample) {
+    if (demoMode && isCanonicalSample && !submissionCopy) {
       const requirements = requirementSetSchema.parse(northstarRequirements);
       return json({
         ok: true,
@@ -360,6 +361,12 @@ export async function POST(request: Request): Promise<Response> {
         modelFailure: null,
         limits: null,
       });
+    }
+
+    if (demoMode && isCanonicalSample && submissionCopy) {
+      warnings.push(
+        "The bundled sample answer set was skipped because submission copy was provided; edited copy requires a live GPT-5.6 audit.",
+      );
     }
 
     if (demoMode && !isCanonicalSample) {

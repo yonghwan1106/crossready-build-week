@@ -2,12 +2,17 @@
 
 import {
   useEffect,
+  useReducer,
   useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
   type MouseEvent,
 } from "react";
+import {
+  auditCopyModeReducer,
+  INITIAL_AUDIT_COPY_MODE_STATE,
+} from "@/components/audit-workspace-state";
 import {
   FindingDetailDialog,
 } from "@/components/finding-detail-dialog";
@@ -168,6 +173,9 @@ function mismatchReasonLabel(reason: string) {
 function warningLabel(warning: string) {
   if (warning.includes("Sample mode used the bundled answer set")) {
     return "This run used the bundled sample answer set. GPT-5.6 was not called.";
+  }
+  if (warning.includes("bundled sample answer set was skipped")) {
+    return "The fixed sample answers were not used because the submission copy was edited. A live GPT-5.6 audit is required to check that text.";
   }
   if (warning.includes("OPENAI_API_KEY")) {
     return "No OpenAI connection was available, so only the file scan completed.";
@@ -384,8 +392,10 @@ export default function AuditWorkspace() {
   const findingTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [rulesFile, setRulesFile] = useState<File | null>(null);
   const [archiveFile, setArchiveFile] = useState<File | null>(null);
-  const [submissionCopy, setSubmissionCopy] = useState("");
-  const [demoMode, setDemoMode] = useState(false);
+  const [{ submissionCopy, demoMode }, dispatchCopyMode] = useReducer(
+    auditCopyModeReducer,
+    INITIAL_AUDIT_COPY_MODE_STATE,
+  );
   const [isLoadingSample, setIsLoadingSample] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<AuditSuccess | null>(null);
@@ -422,14 +432,23 @@ export default function AuditWorkspace() {
 
   function selectRules(event: ChangeEvent<HTMLInputElement>) {
     setRulesFile(event.target.files?.[0] ?? null);
-    setDemoMode(false);
+    dispatchCopyMode({ type: "demo_disabled" });
     setResult(null);
     setError(null);
   }
 
   function selectArchive(event: ChangeEvent<HTMLInputElement>) {
     setArchiveFile(event.target.files?.[0] ?? null);
-    setDemoMode(false);
+    dispatchCopyMode({ type: "demo_disabled" });
+    setResult(null);
+    setError(null);
+  }
+
+  function changeSubmissionCopy(event: ChangeEvent<HTMLTextAreaElement>) {
+    dispatchCopyMode({
+      type: "submission_copy_changed",
+      value: event.target.value,
+    });
     setResult(null);
     setError(null);
   }
@@ -464,7 +483,7 @@ export default function AuditWorkspace() {
           type: "application/zip",
         }),
       );
-      setDemoMode(true);
+      dispatchCopyMode({ type: "sample_loaded" });
 
       if (rulesInputRef.current) rulesInputRef.current.value = "";
       if (archiveInputRef.current) archiveInputRef.current.value = "";
@@ -758,7 +777,7 @@ export default function AuditWorkspace() {
             <textarea
               id="submission-copy"
               value={submissionCopy}
-              onChange={(event) => setSubmissionCopy(event.target.value)}
+              onChange={changeSubmissionCopy}
               disabled={isRunning}
               className="h-16 w-full resize-y rounded-lg border border-white/8 bg-black/20 px-3 py-2.5 text-xs leading-5 text-zinc-300 placeholder:text-zinc-500 focus-visible:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20"
               placeholder="Paste the description reviewers will read…"
@@ -1171,6 +1190,34 @@ export default function AuditWorkspace() {
                 </div>
               </div>
             )}
+
+            {result.inventory.manifest.present &&
+              result.inventory.manifest.unlistedPaths.length > 0 && (
+                <div>
+                  <h3 className="mb-2 font-mono text-[9px] uppercase tracking-[0.15em] text-amber-200">
+                    Files not listed in manifest
+                  </h3>
+                  <p className="mb-2 text-[10px] leading-5 text-zinc-400">
+                    These are coverage facts, not hash mismatches. They only
+                    contradict a rule that requires every submitted file to be
+                    listed.
+                  </p>
+                  <div className="space-y-2">
+                    {result.inventory.manifest.unlistedPaths.map(
+                      (unlistedPath) => (
+                        <article
+                          key={unlistedPath}
+                          className="rounded-xl border border-amber-200/12 bg-amber-200/[0.035] p-3"
+                        >
+                          <p className="break-all text-[10px] text-zinc-200">
+                            {unlistedPath}
+                          </p>
+                        </article>
+                      ),
+                    )}
+                  </div>
+                </div>
+              )}
 
             <div>
               <div className="mb-2 flex items-center justify-between">

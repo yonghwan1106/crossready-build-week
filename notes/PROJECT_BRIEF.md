@@ -1,6 +1,6 @@
 # CrossReady - Product Brief
 
-> Decision status: LOCKED for the 2026-07-18 build milestone
+> Decision status: final prototype boundary, updated 2026-07-19
 > Track: Work & Productivity
 > Tagline: Every artifact agrees before you submit.
 
@@ -33,23 +33,28 @@ evidence.
 ## Why this is different
 
 CrossReady is not a form completion assistant, generic submission checklist, RFP
-writer, or document summarizer. It verifies the actual bytes, rendered pages,
-repository configuration, live-product evidence, video metadata, and final copy
-against each other.
+writer, or document summarizer. It verifies the supplied package: ZIP inventory
+and exact bytes, allowlisted text and JSON previews, manifest hash claims and
+coverage, and optional submission copy. It does not independently render ZIP
+PDFs, play videos, visit URLs, or execute code; those cases remain
+`NEEDS_HUMAN`.
 
 ## OpenAI technology
 
 - API: OpenAI Responses API
 - Required model family: GPT-5.6
-- Baseline extraction model: `gpt-5.6`
-- Optional quality-first final audit: `gpt-5.6-sol`
-- Inputs: rules text/PDF, PDF page images at high detail, artifact text, and
-  deterministic scan results
-- Output: Structured Outputs constrained by the repository JSON Schemas
+- Requested model for both live stages: `gpt-5.6`
+- Rules PDFs: high-detail Responses API file inputs
+- ZIP evidence: bounded previews from allowlisted text, JSON, code, and HTML
+  files
+- Output: Structured Outputs constrained by the repository Zod schemas
 
-GPT-5.6 is essential because the core task requires semantic comparison across
-heterogeneous, long, multimodal artifacts. Deterministic code remains
-authoritative for hashes, inventory, file sizes, page counts, and link status.
+`gpt-5.6-sol` is retained only where it records the API-returned model
+identifier from a verified historical run. GPT-5.6 extracts requirements from
+rules text or PDF and compares them with supplied text evidence. Deterministic
+code remains authoritative for ZIP inventory, file sizes, SHA-256 values,
+manifest integrity, and manifest coverage. CrossReady does not independently
+verify rendered pages or link status.
 
 ## Codex collaboration evidence
 
@@ -68,20 +73,25 @@ will include:
 1. User selects a rules file and a submission ZIP.
 2. CrossReady inventories the archive and previews accepted artifacts.
 3. Deterministic checks run first.
-4. GPT-5.6 extracts requirements and artifact claims into strict schemas.
+4. GPT-5.6 first extracts requirements into a strict schema, then a second
+   structured call compares them with bounded textual evidence.
 5. The report groups evidence-linked findings by status and severity.
 6. User opens the exact evidence and decides what to fix.
-7. User reruns the audit and sees resolved findings turn green.
+7. User reruns the audit with corrected inputs and reviews the newly generated
+   report.
 
 ## MVP acceptance criteria
 
 - The supplied broken sample bundle can be loaded without an account.
 - At least five seeded cross-artifact defects are detected.
-- Every reported contradiction contains two or more evidence locators.
+- Every model-produced semantic contradiction contains verified excerpts from
+  two distinct artifacts; deterministic manifest findings use direct
+  manifest-to-byte facts.
 - Hash and file-inventory checks do not depend on model judgment.
 - The same sample produces a stable finding structure.
-- Missing API configuration produces a designed error state and sample mode
-  remains usable.
+- Missing API configuration returns an explicit `scanner_only` state. The
+  saved-answer sample remains available only for the exact bundled files with
+  the optional submission-copy field left blank.
 - No file is automatically changed or externally submitted.
 
 ## Deliberate non-goals
@@ -96,18 +106,20 @@ will include:
 ## Demo story
 
 The demo bundle looks polished but contains mismatched model names, metrics,
-internal document versions, video metadata, manifest hashes, and live-product
-claims. CrossReady exposes these contradictions, opens the evidence, and turns
-one finding from red to green after the artifact is corrected.
+internal document versions, packaged video metadata, manifest hashes, and a
+packaged live-product snapshot. CrossReady exposes the seeded contradictions
+and opens their evidence; the demo does not claim to fetch the live site or play
+the video.
 
 ## Human decisions
 
 - Work & Productivity was chosen for the workflow and organizational value,
   rather than positioning the product as a developer-only tool.
 - Evidence quality is prioritized over automated fixing.
-- The first version supports PDF, Markdown/text, JSON, source code, HTML
-  snapshots, URLs, and ZIP archives only.
-- Multi-agent execution is optional; a sequential fallback is required.
+- The first version accepts a PDF, Markdown, or TXT rules file plus one ZIP. It
+  reads bounded previews from allowlisted text, JSON, source-code, and HTML
+  files inside the ZIP. PDFs, images, URLs, runtime behavior, and other binaries
+  remain inventory-only or human-review evidence.
 - The demo must run from a bundled fictional sample without requiring private
   user data.
 

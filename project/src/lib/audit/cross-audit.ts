@@ -244,7 +244,10 @@ function verifiedModelFinding(
   ) {
     reviewReasons.push("not every cited excerpt could be verified");
   }
-  if (finding.status === "MISSING" && !allArtifactsComplete) {
+  if (
+    (finding.status === "PROVEN" || finding.status === "MISSING") &&
+    !allArtifactsComplete
+  ) {
     reviewReasons.push(
       "not every submitted artifact was fully represented in the audit input",
     );
@@ -301,10 +304,19 @@ function verifiedModelFinding(
   };
 }
 
-function manifestRequirementIds(requirements: RequirementSet | null): string[] {
+interface ManifestRequirementMatch {
+  id: string;
+  checksHashes: boolean;
+  requiresCoverage: boolean;
+  requiresHumanVerification: boolean;
+}
+
+function manifestRequirementMatches(
+  requirements: RequirementSet | null,
+): ManifestRequirementMatch[] {
   if (!requirements) return [];
   return requirements.requirements
-    .filter((requirement) => {
+    .map((requirement): ManifestRequirementMatch | null => {
       const requirementText =
         `${requirement.statement} ${requirement.source.excerpt}`;
       const isCredentialSecurityRequirement =
@@ -313,6 +325,48 @@ function manifestRequirementIds(requirements: RequirementSet | null): string[] {
         );
       const mentionsManifest =
         /\bmanifest(?:\.json)?\b/i.test(requirementText);
+      if (isCredentialSecurityRequirement || !mentionsManifest) return null;
+
+      const filesMustBeCovered =
+        /\b(?:all|every|each)\s+(?:(?:submitted|submission|package|archive)\s+)?(?:files?|artifacts?|paths?|entries)\b.{0,80}\b(?:(?:(?:must|shall|should|needs?\s+to|(?:is|are)\s+required\s+to)\s+be)|(?:is|are))\s+(?:listed|included|contained|recorded|covered|enumerated|represented|accounted\s+for)\b.{0,80}\bmanifest(?:\.json)?\b/i.test(
+          requirementText,
+        );
+      const filesMustHaveManifestEntry =
+        /\b(?:all|every|each)\s+(?:(?:submitted|submission|package|archive)\s+)?(?:files?|artifacts?|paths?)\b.{0,80}\b(?:must|shall|should|needs?\s+to|(?:is|are)\s+required\s+to)\s+have\s+(?:an?\s+)?(?:entry|entries)\b.{0,80}\bmanifest(?:\.json)?\b/i.test(
+          requirementText,
+        );
+      const filesMustAppearInManifest =
+        /\b(?:all|every|each)\s+(?:(?:submitted|submission|package|archive)\s+)?(?:files?|artifacts?|paths?)\b.{0,80}\b(?:must|shall|should|needs?\s+to|(?:is|are)\s+required\s+to)\s+appear\b.{0,80}\bmanifest(?:\.json)?\b/i.test(
+          requirementText,
+        );
+      const manifestMustCoverFiles =
+        /\bmanifest(?:\.json)?\b.{0,80}\b(?:(?:(?:must|shall|should|needs?\s+to|(?:is|are)\s+required\s+to)\s+)(?:list|include|contain|record|cover|enumerate|account\s+for)|(?:lists|includes|contains|records|covers|enumerates))\b.{0,80}\b(?:all|every|each)\s+(?:(?:submitted|submission|package|archive)\s+)?(?:files?|artifacts?|paths?|entries)\b/i.test(
+          requirementText,
+        );
+      const manifestMustProvideEntries =
+        /\bmanifest(?:\.json)?\b.{0,80}\b(?:must|shall|should|needs?\s+to|(?:is|are)\s+required\s+to)\s+(?:have|provide|contain|include)\s+(?:an?\s+)?(?:entry|entries)\b.{0,80}\b(?:all|every|each)\s+(?:(?:submitted|submission|package|archive)\s+)?(?:files?|artifacts?|paths?)\b/i.test(
+          requirementText,
+        );
+      const hasExplicitCoverageTerm =
+        /\b(?:manifest coverage|manifest completeness|complete set)\b/i.test(
+          requirementText,
+        );
+      const forbidsOmissions =
+        /\b(?:files?|artifacts?|paths?|entries)\b.{0,60}\b(?:omitted|unlisted|absent from the manifest)\b/i.test(
+          requirementText,
+        ) ||
+        /\bmanifest(?:\.json)?\b.{0,60}\b(?:must|shall|should)\s+not\s+omit\b.{0,60}\b(?:files?|artifacts?|paths?|entries)\b/i.test(
+          requirementText,
+        );
+      const requiresCoverage =
+        filesMustBeCovered ||
+        filesMustHaveManifestEntry ||
+        filesMustAppearInManifest ||
+        manifestMustCoverFiles ||
+        manifestMustProvideEntries ||
+        hasExplicitCoverageTerm ||
+        forbidsOmissions;
+
       const hasExplicitDigestTerm =
         /\b(?:sha-?256|checksum(?:s)?|digest(?:s)?)\b/i.test(requirementText);
       const hasFileContext =
@@ -320,17 +374,28 @@ function manifestRequirementIds(requirements: RequirementSet | null): string[] {
           requirementText,
         );
       const hasGenericIntegrityTerm =
-        /\b(?:hash(?:es)?|match(?:es|ed|ing)?|integrity|exact(?:ly)?|identical|verif(?:y|ies|ied|ication))\b/i.test(
+        /\b(?:hash(?:es)?|match(?:es|ed|ing)?|integrity|identical)\b/i.test(
           requirementText,
         );
-      return (
-        !isCredentialSecurityRequirement &&
-        mentionsManifest &&
-        (hasExplicitDigestTerm ||
-          (hasFileContext && hasGenericIntegrityTerm))
-      );
+      const checksHashes =
+        hasExplicitDigestTerm ||
+        (hasFileContext && hasGenericIntegrityTerm);
+      const requiresHumanVerification =
+        requirement.verificationMethods.some((method) =>
+          ["external", "visual", "human"].includes(method),
+        );
+      return checksHashes || requiresCoverage
+        ? {
+            id: requirement.id,
+            checksHashes,
+            requiresCoverage,
+            requiresHumanVerification,
+          }
+        : null;
     })
-    .map((requirement) => requirement.id);
+    .filter(
+      (match): match is ManifestRequirementMatch => match !== null,
+    );
 }
 
 function manifestMismatchExplanation(
@@ -351,39 +416,70 @@ function manifestMismatchExplanation(
 }
 
 function deterministicManifestFinding(
-  requirements: RequirementSet | null,
+  requirementIds: string[],
+  checksHashes: boolean,
+  requiresCoverage: boolean,
+  requiresHumanVerification: boolean,
   inventory: ArchiveInventory,
 ): Omit<AuditFinding, "id"> | null {
-  const requirementIds = manifestRequirementIds(requirements);
   const manifest = inventory.manifest;
   if (!manifest.present && requirementIds.length === 0) return null;
 
+  const relevantMismatches = checksHashes
+    ? manifest.mismatches
+    : manifest.mismatches.filter(
+        (mismatch) => mismatch.reason === "invalid_manifest",
+      );
   let status: FindingStatus;
   let explanation: string;
   if (!manifest.present) {
     status = "MISSING";
     explanation = "No root manifest.json was present in the submitted ZIP.";
-  } else if (manifest.mismatches.length > 0) {
+  } else if (
+    relevantMismatches.length > 0 ||
+    (requiresCoverage && manifest.unlistedPaths.length > 0)
+  ) {
     status = "CONTRADICTED";
     const issues = Array.from(
       new Set(
-        manifest.mismatches.map((mismatch) =>
+        relevantMismatches.map((mismatch) =>
           manifestMismatchExplanation(mismatch.reason),
         ),
       ),
     );
-    explanation = `${manifest.mismatches.length} manifest validation issue(s): ${issues.join("; ")}.`;
-  } else if (manifest.checked === 0) {
+    const validationExplanation =
+      relevantMismatches.length > 0
+        ? `${relevantMismatches.length} manifest validation issue(s): ${issues.join("; ")}.`
+        : "";
+    const coverageExplanation =
+      requiresCoverage && manifest.unlistedPaths.length > 0
+        ? `${manifest.unlistedPaths.length} submitted file(s) are not listed in manifest.json: ${manifest.unlistedPaths.join(", ")}.`
+        : "";
+    explanation = [validationExplanation, coverageExplanation]
+      .filter(Boolean)
+      .join(" ");
+  } else if (checksHashes && manifest.checked === 0) {
     status = "NEEDS_HUMAN";
     explanation = "manifest.json was present but could not be verified.";
   } else {
     status = "PROVEN";
-    explanation = `All ${manifest.checked} manifest hash claim(s) match the exact submitted bytes.`;
+    if (checksHashes && requiresCoverage) {
+      explanation = `All ${manifest.checked} manifest hash claim(s) match, and every submitted file is listed.`;
+    } else if (requiresCoverage) {
+      explanation = "Every submitted file is listed in manifest.json.";
+    } else {
+      explanation = `All ${manifest.checked} manifest hash claim(s) match the exact submitted bytes.`;
+    }
+  }
+  const needsAdditionalVerification =
+    status === "PROVEN" && requiresHumanVerification;
+  if (needsAdditionalVerification) {
+    status = "NEEDS_HUMAN";
+    explanation = `${explanation} The external, visual, or human verification remains outside the manifest facts CrossReady verified.`;
   }
 
-  const evidence: AuditEvidence[] =
-    manifest.mismatches.length > 0
-      ? manifest.mismatches.map((mismatch) => ({
+  const mismatchEvidence: AuditEvidence[] = relevantMismatches.map(
+    (mismatch) => ({
           artifactId:
             mismatch.reason === "hash_mismatch"
               ? mismatch.path
@@ -396,7 +492,21 @@ function deterministicManifestFinding(
               : `manifest entry for ${mismatch.path}`,
           excerpt: `path=${mismatch.path}; expected=${mismatch.expected || "invalid"}; actual=${mismatch.actual ?? "missing"}; reason=${mismatch.reason}`,
           factType: "deterministic",
+        }),
+  );
+  const coverageEvidence: AuditEvidence[] =
+    requiresCoverage
+      ? manifest.unlistedPaths.map((unlistedPath) => ({
+          artifactId: "manifest.json",
+          locatorType: "metadata",
+          locator: `manifest coverage for ${unlistedPath}`,
+          excerpt: `path=${unlistedPath}; reason=unlisted_file`,
+          factType: "deterministic",
         }))
+      : [];
+  const evidence: AuditEvidence[] =
+    mismatchEvidence.length > 0 || coverageEvidence.length > 0
+      ? [...mismatchEvidence, ...coverageEvidence]
       : [
           {
             artifactId: "manifest.json",
@@ -409,17 +519,69 @@ function deterministicManifestFinding(
 
   return {
     requirementIds,
-    title: "Manifest integrity",
+    title: requiresCoverage ? "Manifest completeness" : "Manifest integrity",
     status,
     severity: status === "PROVEN" ? "low" : "blocker",
-    claim: "The package manifest must agree with the exact submitted file bytes.",
+    claim: requiresCoverage
+      ? checksHashes
+        ? "The package manifest must list every submitted file and agree with its exact bytes."
+        : "The package manifest must list every submitted file."
+      : "The package manifest must agree with the exact submitted file bytes.",
     explanation,
     evidence,
     recommendedAction:
-      status === "PROVEN"
+      needsAdditionalVerification
+        ? "Complete the remaining external, visual, or human verification before treating this requirement as proven."
+        : status === "PROVEN"
         ? "Keep the manifest synchronized with the final ZIP."
-        : "Regenerate manifest SHA-256 values from the final packaged bytes.",
+        : requiresCoverage && manifest.unlistedPaths.length > 0
+          ? "Add every submitted file to manifest.json, then regenerate SHA-256 values from the final packaged bytes."
+          : "Regenerate manifest SHA-256 values from the final packaged bytes.",
   };
+}
+
+function deterministicManifestFindings(
+  requirements: RequirementSet | null,
+  inventory: ArchiveInventory,
+): Array<Omit<AuditFinding, "id">> {
+  const matches = manifestRequirementMatches(requirements);
+  if (matches.length > 0) {
+    const requirementFindings = matches.flatMap((match) => {
+      const finding = deterministicManifestFinding(
+        [match.id],
+        match.checksHashes,
+        match.requiresCoverage,
+        match.requiresHumanVerification,
+        inventory,
+      );
+      return finding ? [finding] : [];
+    });
+    const hasHashRequirement = matches.some((match) => match.checksHashes);
+    if (
+      !hasHashRequirement &&
+      inventory.manifest.present &&
+      inventory.manifest.mismatches.length > 0
+    ) {
+      const genericIntegrity = deterministicManifestFinding(
+        [],
+        true,
+        false,
+        false,
+        inventory,
+      );
+      if (genericIntegrity) requirementFindings.push(genericIntegrity);
+    }
+    return requirementFindings;
+  }
+
+  const genericFinding = deterministicManifestFinding(
+    [],
+    true,
+    false,
+    false,
+    inventory,
+  );
+  return genericFinding ? [genericFinding] : [];
 }
 
 function fallbackFinding(
@@ -519,15 +681,20 @@ function finalizeReport(
   requirements: RequirementSet | null,
   findings: Array<Omit<AuditFinding, "id">>,
 ): AuditReport {
-  const deterministic = deterministicManifestFinding(requirements, inventory);
+  const deterministic = deterministicManifestFindings(requirements, inventory);
   let canonicalFindings: Array<Omit<AuditFinding, "id">>;
 
   if (requirements) {
-    const deterministicIds = new Set(deterministic?.requirementIds ?? []);
+    const deterministicById = new Map(
+      deterministic.flatMap((finding) =>
+        finding.requirementIds.map((id) => [id, finding] as const),
+      ),
+    );
     canonicalFindings = requirements.requirements.map((requirement) => {
-      if (deterministic && deterministicIds.has(requirement.id)) {
+      const deterministicFinding = deterministicById.get(requirement.id);
+      if (deterministicFinding) {
         return {
-          ...deterministic,
+          ...deterministicFinding,
           requirementIds: [requirement.id],
           claim: requirement.statement,
         };
@@ -539,11 +706,12 @@ function finalizeReport(
         ),
       );
     });
-    if (deterministic && deterministicIds.size === 0) {
-      canonicalFindings.push(deterministic);
-    }
+    canonicalFindings.push(
+      ...deterministic.filter((finding) => finding.requirementIds.length === 0),
+    );
   } else {
-    canonicalFindings = deterministic ? [deterministic] : findings;
+    canonicalFindings =
+      deterministic.length > 0 ? deterministic : findings;
   }
 
   const finalized = canonicalFindings.map((finding, index) => ({

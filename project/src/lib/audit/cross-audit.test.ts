@@ -1,6 +1,12 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import {
+  TextReader,
+  Uint8ArrayReader,
+  Uint8ArrayWriter,
+  ZipWriter,
+} from "@zip.js/zip.js";
 import OpenAI from "openai";
 import { describe, expect, it, vi } from "vitest";
 
@@ -46,6 +52,7 @@ function requirements(
 
 function inventory(options: {
   manifestMismatch?: boolean;
+  manifestUnlistedPaths?: string[];
 } = {}): ArchiveInventory {
   return {
     archiveName: "submission.zip",
@@ -91,12 +98,15 @@ function inventory(options: {
               reason: "hash_mismatch",
             },
           ],
+          unlistedPaths:
+            options.manifestUnlistedPaths ?? ["submission/description.md"],
         }
       : {
-          present: false,
-          checked: 0,
-          matches: 0,
+          present: options.manifestUnlistedPaths !== undefined,
+          checked: options.manifestUnlistedPaths !== undefined ? 1 : 0,
+          matches: options.manifestUnlistedPaths !== undefined ? 1 : 0,
           mismatches: [],
+          unlistedPaths: options.manifestUnlistedPaths ?? [],
         },
   };
 }
@@ -117,6 +127,21 @@ function fakeClient(findings: unknown[]) {
     client: { responses: { parse } } as unknown as OpenAI,
     parse,
   };
+}
+
+async function makeAuditZip(
+  files: Array<{ path: string; text?: string; bytes?: Uint8Array }>,
+): Promise<Uint8Array> {
+  const writer = new ZipWriter(new Uint8ArrayWriter());
+  for (const file of files) {
+    await writer.add(
+      file.path,
+      file.bytes
+        ? new Uint8ArrayReader(file.bytes)
+        : new TextReader(file.text ?? ""),
+    );
+  }
+  return writer.close();
 }
 
 function modelFinding(
@@ -356,6 +381,84 @@ describe("crossAuditWithGpt", () => {
     expect(result.report.findings[0].status).toBe("NEEDS_HUMAN");
   });
 
+  it("does not claim PROVEN when a real scanned ZIP contains an unavailable PDF", async () => {
+    const archiveBytes = await makeAuditZip([
+      { path: "README.md", text: "Model: GPT-5.6" },
+      {
+        path: "technical-report.pdf",
+        bytes: new TextEncoder().encode("%PDF-1.4 unavailable probe"),
+      },
+    ]);
+    const incompleteInventory = await scanZipArchive(
+      "submission.zip",
+      archiveBytes,
+    );
+    const { client } = fakeClient([
+      modelFinding({
+        status: "PROVEN",
+        evidence: [
+          {
+            artifactId: "README.md",
+            excerpt: "Model: GPT-5.6",
+          },
+        ],
+      }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: requirements(
+          "The model name must agree in README and technical report.",
+        ),
+        inventory: incompleteInventory,
+      },
+      client,
+    );
+
+    expect(
+      incompleteInventory.entries.find(
+        (entry) => entry.path === "technical-report.pdf",
+      )?.preview,
+    ).toBeUndefined();
+    expect(result.report.findings[0].status).toBe("NEEDS_HUMAN");
+    expect(result.report.findings[0].explanation).toContain(
+      "not every submitted artifact was fully represented",
+    );
+  });
+
+  it("keeps a two-artifact exact contradiction when another ZIP file is unavailable", async () => {
+    const archiveBytes = await makeAuditZip([
+      {
+        path: "README.md",
+        text: "README says the release is version 3.0 and publicly available.",
+      },
+      {
+        path: "submission/description.md",
+        text: "Submission says the release is version 2.0 and privately available.",
+      },
+      {
+        path: "technical-report.pdf",
+        bytes: new TextEncoder().encode("%PDF-1.4 unavailable probe"),
+      },
+    ]);
+    const incompleteInventory = await scanZipArchive(
+      "submission.zip",
+      archiveBytes,
+    );
+    const { client } = fakeClient([modelFinding()]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: requirements(),
+        inventory: incompleteInventory,
+      },
+      client,
+    );
+
+    expect(result.report.findings[0].status).toBe("CONTRADICTED");
+    expect(result.report.findings[0].evidence).toHaveLength(2);
+  });
+
   it("preserves submission copy as user-supplied evidence", async () => {
     const { client } = fakeClient([
       modelFinding({
@@ -457,6 +560,299 @@ describe("crossAuditWithGpt", () => {
     });
   });
 
+  it("does not let positive manifest facts prove a requirement with external review scope", async () => {
+    const compositeRequirements = requirements(
+      "Every submitted file must be listed in manifest.json and its SHA-256 must match the exact bytes.",
+      ["deterministic", "external"],
+    );
+    const { client } = fakeClient([
+      modelFinding({ status: "PROVEN", claim: "The package is ready." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: compositeRequirements,
+        inventory: inventory({ manifestUnlistedPaths: [] }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(1);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "NEEDS_HUMAN",
+      title: "Manifest completeness",
+    });
+    expect(result.report.findings[0].explanation).toContain(
+      "external, visual, or human verification remains",
+    );
+  });
+
+  it("keeps a direct manifest contradiction for a requirement with external review scope", async () => {
+    const compositeRequirements = requirements(
+      "Every SHA-256 value in manifest.json must match the submitted bytes.",
+      ["deterministic", "external"],
+    );
+    const { client } = fakeClient([
+      modelFinding({ status: "NEEDS_HUMAN", claim: "External review needed." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: compositeRequirements,
+        inventory: inventory({
+          manifestMismatch: true,
+          manifestUnlistedPaths: [],
+        }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(1);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "CONTRADICTED",
+      title: "Manifest integrity",
+    });
+  });
+
+  it("contradicts manifest completeness when a submitted file is not listed", async () => {
+    const manifestRequirements = requirements(
+      "Every submitted file must be listed in manifest.json and its SHA-256 must match the exact bytes.",
+      ["deterministic"],
+    );
+    const { client } = fakeClient([
+      modelFinding({ status: "PROVEN", claim: "The manifest is complete." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: manifestRequirements,
+        inventory: inventory({
+          manifestUnlistedPaths: ["submission/omitted.txt"],
+        }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(1);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "CONTRADICTED",
+      title: "Manifest completeness",
+      evidence: [
+        {
+          artifactId: "manifest.json",
+          factType: "deterministic",
+        },
+      ],
+    });
+    expect(result.report.findings[0].explanation).toContain(
+      "submission/omitted.txt",
+    );
+  });
+
+  it.each([
+    "Every submitted file must have an entry in manifest.json.",
+    "manifest.json must provide an entry for every submitted file.",
+    "Every file must appear in the manifest.",
+    "Every file must be represented in manifest.json.",
+  ])("recognizes common manifest coverage wording: %s", async (statement) => {
+    const manifestRequirements = requirements(statement, ["deterministic"]);
+    const { client } = fakeClient([
+      modelFinding({ status: "PROVEN", claim: "The manifest is complete." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: manifestRequirements,
+        inventory: inventory({
+          manifestUnlistedPaths: ["submission/omitted.txt"],
+        }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(1);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "CONTRADICTED",
+      title: "Manifest completeness",
+    });
+  });
+
+  it("does not treat unlisted files as hash mismatches for a hash-only requirement", async () => {
+    const manifestRequirements = requirements(
+      "Every SHA-256 value recorded in manifest.json must match the exact submitted bytes.",
+      ["deterministic"],
+    );
+    const { client } = fakeClient([
+      modelFinding({ status: "CONTRADICTED", claim: "A file was omitted." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: manifestRequirements,
+        inventory: inventory({
+          manifestUnlistedPaths: ["submission/omitted.txt"],
+        }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(1);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "PROVEN",
+      title: "Manifest integrity",
+    });
+  });
+
+  it("treats hashes for files already listed in the manifest as hash-only", async () => {
+    const manifestRequirements = requirements(
+      "All files listed in manifest.json must have valid SHA-256 hashes.",
+      ["deterministic"],
+    );
+    const { client } = fakeClient([
+      modelFinding({ status: "CONTRADICTED", claim: "A file was omitted." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: manifestRequirements,
+        inventory: inventory({
+          manifestUnlistedPaths: ["submission/omitted.txt"],
+        }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(1);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "PROVEN",
+      title: "Manifest integrity",
+    });
+  });
+
+  it("evaluates hash-only and all-files manifest rules independently in one report", async () => {
+    const hashStatement =
+      "Every SHA-256 value recorded in manifest.json must match the exact submitted bytes.";
+    const completenessStatement =
+      "Every submitted file must be listed in manifest.json.";
+    const hashRequirements = requirements(hashStatement, ["deterministic"]);
+    const mixedRequirements = requirementSetSchema.parse({
+      ...hashRequirements,
+      requirements: [
+        hashRequirements.requirements[0],
+        {
+          ...hashRequirements.requirements[0],
+          id: "REQ-002",
+          statement: completenessStatement,
+          source: {
+            ...hashRequirements.requirements[0].source,
+            excerpt: completenessStatement,
+          },
+        },
+      ],
+    });
+    const { client } = fakeClient([
+      modelFinding({ status: "CONTRADICTED" }),
+      {
+        ...modelFinding({ status: "PROVEN" }),
+        requirementIds: ["REQ-002"],
+      },
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: mixedRequirements,
+        inventory: inventory({
+          manifestUnlistedPaths: ["submission/omitted.txt"],
+        }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(2);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "PROVEN",
+      title: "Manifest integrity",
+    });
+    expect(result.report.findings[1]).toMatchObject({
+      requirementIds: ["REQ-002"],
+      status: "CONTRADICTED",
+      title: "Manifest completeness",
+    });
+  });
+
+  it("keeps a coverage-only rule proven while reporting a separate hash mismatch", async () => {
+    const coverageRequirements = requirements(
+      "Every submitted file must be listed in manifest.json.",
+      ["deterministic"],
+    );
+    const { client } = fakeClient([
+      modelFinding({ status: "CONTRADICTED", claim: "A hash is wrong." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: coverageRequirements,
+        inventory: inventory({
+          manifestMismatch: true,
+          manifestUnlistedPaths: [],
+        }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(2);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "PROVEN",
+      title: "Manifest completeness",
+    });
+    expect(result.report.findings[1]).toMatchObject({
+      requirementIds: [],
+      status: "CONTRADICTED",
+      title: "Manifest integrity",
+    });
+  });
+
+  it("does not mistake listed exactly once for a hash requirement", async () => {
+    const coverageRequirements = requirements(
+      "Every submitted file must be listed exactly once in manifest.json.",
+      ["deterministic"],
+    );
+    const { client } = fakeClient([
+      modelFinding({ status: "CONTRADICTED", claim: "A hash is wrong." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: coverageRequirements,
+        inventory: inventory({
+          manifestMismatch: true,
+          manifestUnlistedPaths: [],
+        }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(2);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "PROVEN",
+      title: "Manifest completeness",
+    });
+    expect(result.report.findings[1]).toMatchObject({
+      requirementIds: [],
+      status: "CONTRADICTED",
+      title: "Manifest integrity",
+    });
+  });
+
   it("does not override an unrelated credential-security manifest requirement", async () => {
     const passwordRequirements = requirements(
       "The security manifest must document password hashes.",
@@ -508,6 +904,7 @@ describe("crossAuditWithGpt", () => {
           reason: "invalid_manifest",
         },
       ],
+      unlistedPaths: [],
     };
     const { client } = fakeClient([
       modelFinding({ status: "PROVEN", claim: "The manifest is valid." }),

@@ -2,9 +2,10 @@
 
 **Every artifact agrees before you submit.**
 
-**CrossReady is CI for final submission packages.** It checks the entire
-handoff—requirements, final copy, ZIP contents, source configuration, manifests,
-and exact file hashes—before submission.
+**CrossReady is a CI-style preflight check for supplied submission packages.**
+It checks requirements, optional final copy, ZIP contents, text-readable source
+configuration, manifest integrity and coverage, and exact file hashes before
+submission. It does not yet integrate with a CI provider.
 
 It is an evidence-backed audit workspace for high-stakes submission packages.
 It compares requirements with submission copy and bounded text previews, then
@@ -21,11 +22,14 @@ Open **[crossready-build-week.vercel.app](https://crossready-build-week.vercel.a
 and follow this no-login, no-cost path:
 
 1. Select **Try the broken sample**.
-2. Select **Run sample audit**.
-3. Open the first finding to inspect four exact evidence records.
+2. Leave the optional submission-copy field blank.
+3. Select **Run sample audit**.
+4. Open the first finding to inspect four exact evidence records.
 
 The public reviewer build intentionally has no OpenAI API key, so visitors
-cannot consume paid credit. It demonstrates the complete saved sample flow.
+cannot consume paid credit. The saved 12-finding answer set is used only for
+the exact bundled files with blank optional copy. Adding copy exits saved-answer
+mode; the keyless public build then returns scanner-only facts.
 The separate GPT-5.6 live path was verified on 2026-07-18. An initial measured
 run produced 14 extracted requirements, 14 findings, 21 server-computed line
 references, and 8,478 total tokens. A later, distinct reviewer-capture run read
@@ -33,8 +37,9 @@ references, and 8,478 total tokens. A later, distinct reviewer-capture run read
 totals are reported separately because they came from two different live-model
 executions.
 
-The demo was recorded with 64 passing automated tests. Three final hardening
-tests were added after recording, so the current repository baseline is 67.
+The demo truthfully reports the 64 tests that existed at recording time. Final
+consistency hardening increased the current repository baseline to 91 passing
+automated tests.
 
 ## Quick start
 
@@ -54,7 +59,7 @@ in [`project/README.md`](project/README.md).
 
 A submission can pass every individual checklist and still fail as a package:
 
-- the description claims a feature the live product does not expose;
+- the description contradicts a packaged live-product snapshot;
 - the README names GPT-5.6 while the repository calls another model;
 - a file named `FINAL` contains an older internal version;
 - metrics differ between the technical report and submission copy; or
@@ -70,11 +75,16 @@ competition submissions.
 ## MVP workflow
 
 1. Add a requirements document and a submission ZIP.
-2. Run deterministic checks on file inventory, hashes, manifest claims, and
-   package safety.
+2. Run deterministic checks on file inventory, exact hashes, each listed
+   manifest claim, files omitted from the manifest, and package safety.
 3. Use GPT-5.6 to extract atomic requirements and compare bounded text evidence.
 4. Review findings as `PROVEN`, `MISSING`, `CONTRADICTED`, or `NEEDS_HUMAN`.
-5. Inspect the exact file/line locator and excerpt that supports each finding.
+5. Inspect the artifact, locator type such as line, page, hash, or metadata, and
+   the supporting excerpt.
+
+A model-produced semantic contradiction requires verified excerpts from at
+least two distinct artifacts. Manifest integrity and completeness findings are
+computed separately from manifest claims and exact file bytes.
 
 CrossReady never silently edits artifacts and never submits on a user's behalf.
 
@@ -100,13 +110,18 @@ Codex was the primary implementation and verification workspace:
 - built server-side evidence verification, deterministic manifest overrides,
   cost guards, cancellation, and typed error handling;
 - implemented the accessible evidence dialog and reviewer flow;
-- ran 67 automated tests, lint, type checks, production builds, browser checks,
-  and an independent adversarial code review; and
+- ran 91 automated tests plus clean lint, TypeScript, and production-build
+  checks;
+- completed browser/runtime verification for the submitted deployment and an
+  independent adversarial code review; and
 - diagnosed the first hosting preset mismatch and verified the corrected
   production deployment.
 
 Primary Codex `/feedback` Session ID:
 `019f722a-e88a-7d60-9bd5-fd267a70556c`.
+
+Claude was used only for a separate adversarial final-review pass. Codex
+remained the primary implementation and verification workspace.
 
 ## Human product decisions
 
@@ -159,7 +174,8 @@ node scripts/validate_day1.mjs
 - [x] Read real ZIP entries without executing or writing submitted files
 - [x] Enforce archive, file-count, expanded-size, and path-safety limits
 - [x] Compute SHA-256 for the archive and every submitted file
-- [x] Compare `manifest.json` claims with the exact submitted bytes
+- [x] Compare listed `manifest.json` claims with exact bytes and report
+  submitted files omitted from the manifest separately
 - [x] Connect GPT-5.6 requirement extraction through the Responses API
 - [x] Constrain model output with the canonical Zod requirement schema
 - [x] Add honest `sample` and `scanner_only` modes when no API key is present
@@ -184,11 +200,13 @@ put the key in a browser variable or commit it.
   optional submission copy
 - [x] Complete a paid live end-to-end run: 14 requirements, 14 findings, and
   21 server-computed line references
-- [x] Override model output with deterministic manifest/hash facts
+- [x] Override model output with deterministic manifest-integrity and
+  manifest-coverage facts
 - [x] Accept model evidence only when the artifact ID and exact excerpt verify
-- [x] Downgrade unverifiable, truncated, binary, PDF, visual, or external
-  evidence to `NEEDS_HUMAN`
-- [x] Return the canonical 12-finding sample report without spending API credit
+- [x] Downgrade model-produced `PROVEN` and `MISSING` results when submitted
+  evidence is incomplete
+- [x] Return the canonical 12-finding sample report only for exact sample
+  fingerprints with blank optional copy
 - [x] Open every finding in a keyboard-accessible evidence detail dialog
 - [x] Add 60-second per-call, 115-second whole-audit, and 125-second browser
   timeouts with cancel/retry propagation
