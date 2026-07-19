@@ -2,11 +2,15 @@
 
 **Every artifact agrees before you submit.**
 
-CrossReady is an evidence-backed audit workspace for high-stakes submission
-packages. It compares requirements with submission copy and bounded text
-previews, then combines those findings with ZIP inventory, manifest, and hash
-facts. PDF, image, runtime, and external-page claims that it cannot independently
-verify stay in human review.
+**CrossReady is CI for final submission packages.** It checks the entire
+handoff—requirements, final copy, ZIP contents, source configuration, manifests,
+and exact file hashes—before submission.
+
+It is an evidence-backed audit workspace for high-stakes submission packages.
+It compares requirements with submission copy and bounded text previews, then
+combines those findings with ZIP inventory, manifest, and hash facts. PDF,
+image, runtime, and external-page claims that it cannot independently verify
+stay in human review.
 
 This repository contains the submitted CrossReady entry for OpenAI Build Week
 2026 in the **Work & Productivity** track.
@@ -28,6 +32,9 @@ references, and 8,478 total tokens. A later, distinct reviewer-capture run read
 11 files, displayed 16 findings, used 9,038 tokens, and took 71.9 seconds. The
 totals are reported separately because they came from two different live-model
 executions.
+
+The demo was recorded with 64 passing automated tests. Three final hardening
+tests were added after recording, so the current repository baseline is 67.
 
 ## Quick start
 
@@ -55,6 +62,10 @@ A submission can pass every individual checklist and still fail as a package:
 
 Existing form checkers mostly verify that fields and attachments exist.
 CrossReady verifies that claims and evidence agree across artifacts.
+
+The same final-gate workflow applies to RFP bids, grant applications,
+certification and audit packages, client deliverables, and research or
+competition submissions.
 
 ## MVP workflow
 

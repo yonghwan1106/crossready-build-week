@@ -6,8 +6,8 @@ CrossReady
 
 ## One-line tagline
 
-Every artifact agrees before you submit—an evidence-backed auditor that finds
-contradictions across rules, files, code, and submission claims.
+CI for final submission packages—verify documents, code, manifests, and exact
+file bytes before you submit.
 
 ## Track
 
@@ -22,6 +22,11 @@ Work & Productivity
 - Codex `/feedback` Session ID: `019f722a-e88a-7d60-9bd5-fd267a70556c`
 
 ## Inspiration
+
+CrossReady is CI for final submission packages. Unlike a document-only checker,
+it examines the entire handoff: rules, submission copy, ZIP contents, source
+configuration, manifests, and exact file hashes. GPT-5.6 finds semantic
+conflicts; deterministic code verifies whether the cited evidence exists.
 
 A high-stakes submission can pass every individual checklist and still fail as
 a package.
@@ -38,6 +43,13 @@ wanted to ask a more useful question:
 **Do all of the submitted artifacts tell the same, provable story?**
 
 That question became CrossReady.
+
+## Who it helps
+
+CrossReady is designed for solo builders and small teams preparing work that
+must be correct at the moment it leaves their hands. The same preflight gate
+applies to RFP bids, grant applications, certification and audit packages,
+client deliverables, and research or competition submissions.
 
 ## What it does
 
@@ -176,8 +188,10 @@ the problem, track, four-state result model, evidence-first standard,
 no-silent-rewrite rule, and public-demo cost boundary. Codex accelerated
 implementation and verification within those decisions.
 
-The current baseline is **67 passing automated tests**, together with clean
-lint, TypeScript, production-build, browser-flow, and deployed-runtime checks.
+The demo was recorded with **64 passing automated tests**. Three final hardening
+tests were added after recording, so the current baseline is **67 passing
+automated tests**, together with clean lint, TypeScript, production-build,
+browser-flow, and deployed-runtime checks.
 
 ## Challenges we ran into
 

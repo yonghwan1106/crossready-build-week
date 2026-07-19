@@ -30,5 +30,8 @@ controlled GPT-5.6 run shown near the end.
 - The free public sample is explicitly labeled as not calling GPT.
 - The actual paid GPT-5.6 run is shown as separate measured proof.
 - Codex and GPT-5.6 roles are described concretely.
+- The narrated count of 64 tests is correct for the recording time. Three final
+  hardening tests were added afterward, bringing the current repository total
+  to 67.
 - No background music or third-party media was added.
 - The end card holds the public URL for more than two seconds.
