@@ -115,7 +115,7 @@ function modeLabel(result: AuditSuccess) {
   if (result.mode === "partial") {
     return {
       title: "Partial result",
-      detail: metadata.models.join(", ") || "일부 AI 단계만 완료",
+      detail: metadata.models.join(", ") || "Only some AI stages completed",
       className: "bg-amber-300/10 text-amber-200 ring-amber-200/25",
     };
   }
@@ -153,11 +153,13 @@ function manifestSummary(manifest: AuditSuccess["inventory"]["manifest"]) {
 
 function mismatchReasonLabel(reason: string) {
   const labels: Record<string, string> = {
-    hash_mismatch: "파일의 실제 지문이 manifest 기록과 다릅니다.",
-    missing_file: "manifest에 적힌 파일이 ZIP 안에 없습니다.",
-    invalid_sha256: "manifest의 SHA-256 값 형식이 올바르지 않습니다.",
-    invalid_manifest: "manifest 내용을 검사 가능한 형식으로 읽지 못했습니다.",
-    unsafe_manifest_path: "manifest에 안전하지 않은 파일 경로가 들어 있습니다.",
+    hash_mismatch:
+      "The file fingerprint does not match the value recorded in the manifest.",
+    missing_file: "A file listed in the manifest is missing from the ZIP.",
+    invalid_sha256: "The manifest contains an invalid SHA-256 value.",
+    invalid_manifest:
+      "The manifest could not be read in a supported verification format.",
+    unsafe_manifest_path: "The manifest contains an unsafe file path.",
   };
 
   return labels[reason] ?? reason;
@@ -165,13 +167,13 @@ function mismatchReasonLabel(reason: string) {
 
 function warningLabel(warning: string) {
   if (warning.includes("Sample mode used the bundled answer set")) {
-    return "준비된 샘플 정답을 사용했습니다. GPT-5.6은 호출하지 않았습니다.";
+    return "This run used the bundled sample answer set. GPT-5.6 was not called.";
   }
   if (warning.includes("OPENAI_API_KEY")) {
-    return "OpenAI 연결이 없어 파일 검사만 완료했습니다.";
+    return "No OpenAI connection was available, so only the file scan completed.";
   }
   if (warning.includes("PDF requirement excerpts and page locators")) {
-    return "PDF 규정의 문장·페이지 위치는 GPT가 찾았으므로 원문 페이지를 사람이 한 번 확인해야 합니다.";
+    return "GPT located the PDF excerpts and page references. Verify them against the original pages before submitting.";
   }
   return warning;
 }
@@ -183,69 +185,69 @@ function failureMessage(
   const defaults: Record<string, Pick<UiError, "title" | "message" | "action">> =
     {
       RATE_LIMITED: {
-        title: "요청이 잠시 몰렸습니다",
-        message: "사용 가능 횟수가 다시 생긴 뒤 재시도해 주세요.",
-        action: "잠시 기다렸다가 같은 파일로 다시 검사하세요.",
+        title: "Too many audit requests",
+        message: "Try again when audit capacity becomes available.",
+        action: "Wait briefly, then run the same files again.",
       },
       AUDIT_CAPACITY: {
-        title: "지금 다른 검사를 처리하고 있습니다",
-        message: "안전한 동시 처리 수를 넘지 않도록 새 검사를 잠시 기다립니다.",
-        action: "잠시 후 같은 파일로 다시 검사하세요.",
+        title: "Another audit is in progress",
+        message: "New audits are paused to stay within the safe concurrency limit.",
+        action: "Wait briefly, then run the same files again.",
       },
       TIMEOUT: {
-        title: "검사 시간이 너무 길어졌습니다",
-        message: "안전 제한 시간 안에 끝나지 않아 검사를 중단했습니다.",
-        action: "ZIP 크기를 줄이거나 잠시 후 다시 시도하세요.",
+        title: "The audit took too long",
+        message: "The audit was stopped after reaching the safety timeout.",
+        action: "Reduce the ZIP size or try again shortly.",
       },
       ARCHIVE_TYPE: {
-        title: "ZIP 파일이 필요합니다",
-        message: "제출 묶음에는 .zip 파일만 사용할 수 있습니다.",
-        action: "최종 제출 파일을 ZIP으로 묶어 다시 선택하세요.",
+        title: "A ZIP file is required",
+        message: "The submission bundle must be a .zip file.",
+        action: "Package the final submission as a ZIP and select it again.",
       },
       RULES_TYPE: {
-        title: "규정 파일 형식을 확인해 주세요",
-        message: "규정은 PDF, Markdown 또는 TXT 파일이어야 합니다.",
-        action: "지원되는 형식으로 다시 선택하세요.",
+        title: "Check the rules file format",
+        message: "The rules must be a PDF, Markdown, or TXT file.",
+        action: "Select the rules again in a supported format.",
       },
       ARCHIVE_TOO_LARGE: {
-        title: "ZIP 파일이 너무 큽니다",
-        message: "안전한 검사 범위를 넘어 파일을 열지 않았습니다.",
-        action: "불필요한 파일을 빼고 ZIP을 작게 만든 뒤 다시 시도하세요.",
+        title: "The ZIP file is too large",
+        message: "The archive was not opened because it exceeds the safe audit limit.",
+        action: "Remove unnecessary files, reduce the ZIP size, and try again.",
       },
       RULES_TOO_LARGE: {
-        title: "규정 파일이 너무 큽니다",
-        message: "안전한 검사 범위를 넘어 파일을 읽지 않았습니다.",
-        action: "필요한 규정 페이지만 남겨 다시 시도하세요.",
+        title: "The rules file is too large",
+        message: "The rules were not read because the file exceeds the safe audit limit.",
+        action: "Keep only the relevant rules pages and try again.",
       },
       RULES_PDF_TOO_MANY_PAGES: {
-        title: "규정 PDF 페이지가 너무 많습니다",
-        message: "한 번의 검사에서는 최대 40페이지까지 처리합니다.",
-        action: "필요한 규정 페이지만 남긴 PDF로 다시 시도하세요.",
+        title: "The rules PDF has too many pages",
+        message: "A single audit can process up to 40 pages.",
+        action: "Keep only the relevant pages in the PDF and try again.",
       },
       EMPTY_ARCHIVE: {
-        title: "ZIP 안에 검사할 파일이 없습니다",
-        message: "비어 있지 않은 최종 제출 ZIP을 선택해 주세요.",
-        action: "ZIP 내용을 확인한 뒤 다시 선택하세요.",
+        title: "The ZIP contains no files to audit",
+        message: "Select a non-empty final submission ZIP.",
+        action: "Check the ZIP contents, then select it again.",
       },
       API_KEY_MISSING: {
-        title: "GPT 연결이 준비되지 않았습니다",
-        message: "파일 검사는 가능하지만 요구사항 자동 추출은 할 수 없습니다.",
-        action: "서버의 OpenAI 연결을 확인하거나 샘플 모드를 사용하세요.",
+        title: "The GPT connection is not configured",
+        message: "The file scan can run, but requirements cannot be extracted automatically.",
+        action: "Check the server's OpenAI connection or use the sample audit.",
       },
       DAILY_BUDGET_EXHAUSTED: {
-        title: "오늘 사용할 수 있는 검사 횟수를 모두 썼습니다",
-        message: "새 한도가 시작될 때까지 실제 GPT 검사를 실행할 수 없습니다.",
-        action: "표시된 재설정 시간 이후 다시 시도하세요.",
+        title: "Today's live-audit limit has been reached",
+        message: "A live GPT audit cannot run until the limit resets.",
+        action: "Try again after the reset time shown below.",
       },
       REQUEST_TOO_LARGE: {
-        title: "한 번에 보낼 파일이 너무 큽니다",
-        message: "규정과 제출 ZIP을 합친 크기가 안전한 검사 범위를 넘었습니다.",
-        action: "불필요한 파일을 빼거나 용량을 줄인 뒤 다시 시도하세요.",
+        title: "The combined upload is too large",
+        message: "The rules and submission ZIP exceed the safe request limit.",
+        action: "Remove unnecessary files or reduce their size, then try again.",
       },
       SUBMISSION_COPY_TOO_LARGE: {
-        title: "제출 설명이 너무 깁니다",
-        message: "붙여 넣은 설명이 한 번에 비교할 수 있는 길이를 넘었습니다.",
-        action: "핵심 주장만 남겨 설명을 짧게 만든 뒤 다시 시도하세요.",
+        title: "The submission copy is too long",
+        message: "The pasted description exceeds the comparison limit.",
+        action: "Keep only the key claims, then try again.",
       },
     };
   const matched =
@@ -259,7 +261,7 @@ function failureMessage(
         : undefined);
 
   return {
-    title: matched?.title ?? "검사를 마치지 못했습니다",
+    title: matched?.title ?? "The audit could not be completed",
     message: matched?.message ?? error.message,
     action: matched?.action ?? error.action,
     retryable:
@@ -274,12 +276,12 @@ function failureMessage(
 function formatResetTime(resetAt: string) {
   const date = new Date(resetAt);
   if (Number.isNaN(date.getTime())) return resetAt;
-  return date.toLocaleString("ko-KR", {
-    month: "long",
+  return date.toLocaleString("en-US", {
+    month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
+    timeZoneName: "short",
   });
 }
 
@@ -291,49 +293,49 @@ function modelFailureMessage(
     { title: string; message: string; action: string }
   > = {
     auth: {
-      title: "GPT 연결 인증을 확인해야 합니다",
-      message: "서버의 OpenAI 인증 정보가 올바르지 않아 AI 검사를 멈췄습니다.",
-      action: "관리자가 API 키를 확인한 뒤 다시 실행해야 합니다.",
+      title: "Check the GPT authentication",
+      message: "The AI audit stopped because the server's OpenAI credentials were rejected.",
+      action: "An administrator must verify the API key before running the audit again.",
     },
     quota: {
-      title: "GPT 사용 한도가 부족합니다",
-      message: "OpenAI 계정의 사용 한도가 부족해 AI 검사를 완료하지 못했습니다.",
-      action: "계정 사용 한도를 확인한 뒤 다시 시도하세요.",
+      title: "The GPT quota is unavailable",
+      message: "The AI audit could not finish because the OpenAI account has insufficient quota.",
+      action: "Check the account quota, then try again.",
     },
     rate_limit: {
-      title: "GPT 요청이 잠시 몰렸습니다",
-      message: "짧은 시간에 요청이 많아 AI 검사 일부를 완료하지 못했습니다.",
-      action: "잠시 기다렸다가 같은 파일로 다시 검사하세요.",
+      title: "GPT requests are temporarily limited",
+      message: "Part of the AI audit could not finish because too many requests arrived at once.",
+      action: "Wait briefly, then run the same files again.",
     },
     timeout: {
-      title: "GPT 응답 시간이 초과되었습니다",
-      message: "AI 단계가 제한 시간 안에 끝나지 않아 나머지 결과만 표시합니다.",
-      action: "파일 크기를 줄이거나 잠시 후 다시 시도하세요.",
+      title: "The GPT request timed out",
+      message: "The AI stage did not finish in time, so the remaining results are shown without it.",
+      action: "Reduce the file size or try again shortly.",
     },
     server: {
-      title: "GPT 서버가 일시적으로 응답하지 않습니다",
-      message: "OpenAI 서버 문제로 AI 검사 일부를 완료하지 못했습니다.",
-      action: "잠시 후 같은 파일로 다시 검사하세요.",
+      title: "GPT is temporarily unavailable",
+      message: "Part of the AI audit could not finish because the OpenAI service did not respond.",
+      action: "Wait briefly, then run the same files again.",
     },
     refusal: {
-      title: "GPT가 이 문서 처리를 완료하지 않았습니다",
-      message: "AI 안전 판단으로 요청한 분석 결과를 만들지 못했습니다.",
-      action: "민감한 내용을 제거하거나 사람이 직접 확인하세요.",
+      title: "GPT did not process this document",
+      message: "The requested analysis was not produced because of an AI safety decision.",
+      action: "Remove sensitive content or review the document manually.",
     },
     invalid_output: {
-      title: "GPT 결과를 안전하게 읽지 못했습니다",
-      message: "AI 응답이 필요한 형식과 달라 자동 판정에 사용하지 않았습니다.",
-      action: "다시 검사하거나 표시된 파일을 사람이 확인하세요.",
+      title: "The GPT result could not be validated",
+      message: "The AI response did not match the required format and was not used for automated findings.",
+      action: "Run the audit again or review the flagged files manually.",
     },
     request: {
-      title: "GPT에 보낼 내용을 확인해야 합니다",
-      message: "AI 요청 형식이나 내용 문제로 검사를 시작하지 못했습니다.",
-      action: "파일 형식과 내용을 확인한 뒤 다시 시도하세요.",
+      title: "Check the content sent to GPT",
+      message: "The AI audit could not start because of a request-format or content issue.",
+      action: "Check the file formats and contents, then try again.",
     },
     unknown: {
-      title: "GPT 검사를 완료하지 못했습니다",
-      message: "알 수 없는 문제로 AI 검사 일부를 완료하지 못했습니다.",
-      action: "잠시 후 다시 시도하고, 계속되면 요청 ID를 확인하세요.",
+      title: "The GPT audit could not be completed",
+      message: "Part of the AI audit failed because of an unknown error.",
+      action: "Try again shortly. If it continues, use the request ID to investigate.",
     },
   };
 
@@ -343,19 +345,19 @@ function modelFailureMessage(
 function findingStatus(status: string) {
   const styles: Record<string, { label: string; className: string }> = {
     PROVEN: {
-      label: "확인됨",
+      label: "Proven",
       className: "bg-emerald-400/10 text-emerald-300 ring-emerald-300/20",
     },
     CONTRADICTED: {
-      label: "서로 모순",
+      label: "Contradicted",
       className: "bg-rose-400/10 text-rose-300 ring-rose-300/20",
     },
     MISSING: {
-      label: "근거 없음",
+      label: "Missing",
       className: "bg-amber-300/10 text-amber-200 ring-amber-200/20",
     },
     NEEDS_HUMAN: {
-      label: "사람 확인 필요",
+      label: "Needs review",
       className: "bg-sky-400/10 text-sky-300 ring-sky-300/20",
     },
   };
@@ -372,6 +374,7 @@ export default function AuditWorkspace() {
   const rulesInputRef = useRef<HTMLInputElement>(null);
   const archiveInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const runButtonRef = useRef<HTMLButtonElement>(null);
   const resultHeadingRef = useRef<HTMLHeadingElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -429,7 +432,7 @@ export default function AuditWorkspace() {
       ]);
 
       if (!rulesResponse.ok || !archiveResponse.ok) {
-        throw new Error("샘플 파일을 불러오지 못했습니다.");
+        throw new Error("The sample files could not be loaded.");
       }
 
       const [rulesBlob, archiveBlob] = await Promise.all([
@@ -448,16 +451,23 @@ export default function AuditWorkspace() {
         }),
       );
       setDemoMode(true);
+      requestAnimationFrame(() => {
+        runButtonRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        runButtonRef.current?.focus({ preventScroll: true });
+      });
 
       if (rulesInputRef.current) rulesInputRef.current.value = "";
       if (archiveInputRef.current) archiveInputRef.current.value = "";
     } catch (sampleError) {
       setError({
-        title: "샘플을 불러오지 못했습니다",
+        title: "The sample could not be loaded",
         message:
           sampleError instanceof Error
             ? sampleError.message
-            : "네트워크 연결을 확인해 주세요.",
+            : "Check your network connection and try again.",
         retryable: true,
       });
     } finally {
@@ -470,8 +480,8 @@ export default function AuditWorkspace() {
 
     if (!rulesFile || !archiveFile) {
       setError({
-        title: "파일 두 개가 필요합니다",
-        message: "규정 파일과 제출 ZIP을 모두 골라 주세요.",
+        title: "Two files are required",
+        message: "Select both a rules file and a submission ZIP.",
         retryable: false,
       });
       return;
@@ -521,9 +531,9 @@ export default function AuditWorkspace() {
 
       if (!payload) {
         setError({
-          title: "검사 서버가 응답하지 않았습니다",
-          message: "잠시 후 같은 파일로 다시 시도해 주세요.",
-          action: "연결을 확인한 뒤 다시 시도하세요.",
+          title: "The audit server did not respond",
+          message: "Try the same files again shortly.",
+          action: "Check the connection, then run the audit again.",
           retryable: true,
         });
         return;
@@ -533,8 +543,8 @@ export default function AuditWorkspace() {
         setError(
           payload.ok
             ? {
-                title: "검사 서버가 응답하지 않았습니다",
-                message: "잠시 후 같은 파일로 다시 시도해 주세요.",
+                title: "The audit server did not respond",
+                message: "Try the same files again shortly.",
                 retryable: true,
               }
             : failureMessage(payload.error),
@@ -548,29 +558,29 @@ export default function AuditWorkspace() {
         setError(
           timedOutRef.current
             ? {
-                title: "검사 시간이 너무 길어졌습니다",
-                message: "125초 안에 끝나지 않아 안전하게 중단했습니다.",
-                action: "ZIP 크기를 줄이거나 잠시 후 다시 시도하세요.",
+                title: "The audit took too long",
+                message: "It did not finish within 125 seconds and was stopped safely.",
+                action: "Reduce the ZIP size or try again shortly.",
                 retryable: true,
                 code: "CLIENT_TIMEOUT",
               }
             : {
-                title: "검사를 취소했습니다",
+                title: "The audit was cancelled",
                 message: userCancelledRef.current
-                  ? "파일은 변경되지 않았습니다. 준비되면 다시 실행할 수 있습니다."
-                  : "연결이 중단되어 검사를 끝내지 못했습니다.",
+                  ? "Your files were not changed. Run the audit again when you are ready."
+                  : "The connection ended before the audit could finish.",
                 retryable: true,
                 code: "CANCELLED",
               },
         );
       } else {
         setError({
-          title: "검사 서버에 연결하지 못했습니다",
+          title: "Could not connect to the audit server",
           message:
             auditError instanceof Error
               ? auditError.message
-              : "네트워크 연결을 확인해 주세요.",
-          action: "연결을 확인한 뒤 다시 시도하세요.",
+              : "Check your network connection and try again.",
+          action: "Check the connection, then run the audit again.",
           retryable: true,
         });
       }
@@ -629,7 +639,8 @@ export default function AuditWorkspace() {
                 Start an evidence audit
               </h2>
               <p className="mt-1 text-xs leading-5 text-zinc-400">
-                규정 파일과 최종 제출 ZIP을 올려 실제 내용을 검사합니다.
+                Upload the rules and final submission ZIP to inspect the
+                packaged evidence.
               </p>
             </div>
             <span className="shrink-0 rounded-full bg-white/5 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-zinc-400">
@@ -659,7 +670,7 @@ export default function AuditWorkspace() {
                   <span className="flex size-10 items-center justify-center rounded-lg border border-white/8 bg-white/4 text-zinc-400 transition-colors group-hover:text-accent">
                     <UploadIcon kind="rules" />
                   </span>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-zinc-500">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
                     PDF · MD · TXT
                   </span>
                 </span>
@@ -671,7 +682,7 @@ export default function AuditWorkspace() {
                     </span>
                   </span>
                   <span className="mt-1 block truncate text-[11px] text-zinc-400">
-                    {rulesFile?.name ?? "규정 파일 고르기"}
+                    {rulesFile?.name ?? "Choose a rules file"}
                   </span>
                 </span>
               </label>
@@ -696,7 +707,7 @@ export default function AuditWorkspace() {
                   <span className="flex size-10 items-center justify-center rounded-lg border border-white/8 bg-white/4 text-zinc-400 transition-colors group-hover:text-accent">
                     <UploadIcon kind="archive" />
                   </span>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-zinc-500">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
                     ZIP
                   </span>
                 </span>
@@ -708,7 +719,7 @@ export default function AuditWorkspace() {
                     </span>
                   </span>
                   <span className="mt-1 block truncate text-[11px] text-zinc-400">
-                    {archiveFile?.name ?? "제출 ZIP 고르기"}
+                    {archiveFile?.name ?? "Choose a submission ZIP"}
                   </span>
                 </span>
               </label>
@@ -719,12 +730,14 @@ export default function AuditWorkspace() {
             type="button"
             onClick={loadSample}
             disabled={isLoadingSample || isRunning}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-sky-300/15 bg-sky-400/[0.045] px-4 py-3 text-[11px] font-medium text-sky-200 transition-colors hover:border-sky-300/30 hover:bg-sky-400/[0.075] disabled:cursor-wait disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-sky-300/20 bg-sky-400/[0.055] px-4 py-3 text-xs font-medium text-sky-100 transition-colors hover:border-sky-300/35 hover:bg-sky-400/[0.085] disabled:cursor-wait disabled:opacity-60"
           >
             <UploadIcon kind="scan" />
             {isLoadingSample
-              ? "샘플을 불러오는 중…"
-              : "Load broken sample · 준비된 고장 사례로 체험"}
+              ? "Loading sample…"
+              : demoMode
+                ? "Sample ready · Reload files"
+                : "Try the broken sample"}
           </button>
 
           <div className="rounded-xl border border-white/7 bg-black/15 p-4">
@@ -740,13 +753,13 @@ export default function AuditWorkspace() {
               value={submissionCopy}
               onChange={(event) => setSubmissionCopy(event.target.value)}
               disabled={isRunning}
-              className="h-16 w-full resize-y rounded-lg border border-white/8 bg-black/20 px-3 py-2.5 text-[11px] leading-5 text-zinc-300 placeholder:text-zinc-500 focus-visible:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20"
-              placeholder="심사자가 읽을 설명을 붙여 넣을 수 있습니다…"
+              className="h-16 w-full resize-y rounded-lg border border-white/8 bg-black/20 px-3 py-2.5 text-xs leading-5 text-zinc-300 placeholder:text-zinc-500 focus-visible:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20"
+              placeholder="Paste the description reviewers will read…"
             />
-            <p className="mt-2 text-[9px] leading-4 text-zinc-500">
-              실제 GPT 검사에서는 규정 원문·이 설명·ZIP 안의 제한된 텍스트
-              미리보기가 OpenAI로 전송됩니다. 별도로 저장하지 않으며 ZIP의
-              바이너리 파일은 보내지 않습니다.
+            <p className="mt-2 text-[11px] leading-5 text-zinc-400">
+              In a live GPT audit, the rules, this copy, and limited text
+              previews from the ZIP are sent to OpenAI. CrossReady does not
+              store them separately or send binary files from the ZIP.
             </p>
           </div>
 
@@ -761,12 +774,12 @@ export default function AuditWorkspace() {
                   <p className="mt-1 text-rose-100/75">{error.message}</p>
                   {error.action && (
                     <p className="mt-2 text-rose-100/60">
-                      다음 단계: {error.action}
+                      Next step: {error.action}
                     </p>
                   )}
                   {error.resetAt && (
                     <p className="mt-2 font-medium text-rose-100/80">
-                      {formatResetTime(error.resetAt)} 이후 다시 가능
+                      Available again after {formatResetTime(error.resetAt)}
                     </p>
                   )}
                 </div>
@@ -777,7 +790,7 @@ export default function AuditWorkspace() {
                     disabled={isRunning}
                     className="shrink-0 rounded-lg border border-rose-200/20 bg-rose-100/5 px-3 py-2 text-[10px] font-medium text-rose-100 transition-colors hover:bg-rose-100/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200/40"
                   >
-                    다시 검사
+                    Retry audit
                   </button>
                 )}
               </div>
@@ -795,13 +808,18 @@ export default function AuditWorkspace() {
         <div className="border-t border-white/8 bg-black/10 p-4 sm:p-5">
           <div className={isRunning ? "grid grid-cols-[1fr_auto] gap-2" : ""}>
             <button
+              ref={runButtonRef}
               type="submit"
               disabled={
                 !rulesFile || !archiveFile || isRunning || isLoadingSample
               }
               className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-[#082116] shadow-[0_0_30px_rgba(98,215,154,0.08)] transition-colors hover:bg-[#b5ffd4] disabled:cursor-not-allowed disabled:opacity-45"
             >
-              {isRunning ? "파일을 읽고 검사하는 중…" : "Run evidence audit"}
+              {isRunning
+                ? "Reading files and checking evidence…"
+                : demoMode
+                  ? "Run sample audit"
+                  : "Run evidence audit"}
               {!isRunning && <UploadIcon kind="upload" />}
             </button>
             {isRunning && (
@@ -810,26 +828,26 @@ export default function AuditWorkspace() {
                 onClick={cancelAudit}
                 className="h-11 rounded-xl border border-white/12 bg-white/5 px-4 text-xs font-medium text-zinc-200 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
               >
-                취소
+                Cancel
               </button>
             )}
           </div>
           <p
-            className="mt-3 text-center text-[10px] text-zinc-500"
+            className="mt-3 text-center text-[11px] leading-5 text-zinc-400"
             aria-live="polite"
           >
             {isRunning
-              ? "ZIP 안의 파일을 안전하게 펼쳐 목록과 해시를 확인합니다."
+              ? "Safely unpacking the ZIP, inventorying files, and checking hashes."
               : demoMode
-                ? "샘플 선택됨 · GPT를 실행하지 않는 체험 모드"
-                : "API 키가 없으면 파일 검사는 계속되고 GPT 추출만 건너뜁니다."}
+                ? "Sample files are ready. This audit uses bundled answer data and does not call GPT-5.6."
+                : "Without an API key, the file scan still runs and only GPT extraction is skipped."}
           </p>
         </div>
       </form>
 
       <p className="sr-only" role="status" aria-live="polite">
         {result
-          ? `검사가 완료되었습니다. ${result.inventory.totalFiles}개 파일을 읽었습니다.`
+          ? `Audit complete. ${result.inventory.totalFiles} files were read.`
           : ""}
       </p>
 
@@ -848,7 +866,7 @@ export default function AuditWorkspace() {
                   tabIndex={-1}
                   className="text-sm font-medium text-white"
                 >
-                  방금 검사한 결과
+                  Latest audit result
                 </h2>
                 <p className="mt-1 max-w-md truncate text-[11px] text-zinc-400">
                   {result.inventory.archiveName}
@@ -861,7 +879,7 @@ export default function AuditWorkspace() {
                 {badge.title}
               </span>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[8px] uppercase tracking-wider text-zinc-500">
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-wider text-zinc-400">
               {modelMetadata && modelMetadata.durationMs > 0 && (
                 <span>{(modelMetadata.durationMs / 1000).toFixed(1)}s</span>
               )}
@@ -870,7 +888,7 @@ export default function AuditWorkspace() {
               )}
               {modelMetadata && modelMetadata.totalTokens > 0 && (
                 <span>
-                  이번 검사 {modelMetadata.totalTokens.toLocaleString("ko-KR")} 토큰
+                  {modelMetadata.totalTokens.toLocaleString("en-US")} tokens
                 </span>
               )}
               {result.limits && (
@@ -881,9 +899,9 @@ export default function AuditWorkspace() {
                       : "text-zinc-500"
                   }
                 >
-                  남은 검사 {result.limits.remaining}/{result.limits.limit}
+                  audits remaining {result.limits.remaining}/{result.limits.limit}
                   {result.limits.remaining === 0 &&
-                    ` · ${formatResetTime(result.limits.resetAt)} 재설정`}
+                    ` · resets ${formatResetTime(result.limits.resetAt)}`}
                 </span>
               )}
             </div>
@@ -903,7 +921,7 @@ export default function AuditWorkspace() {
                     {modelFailureCopy.message}
                   </p>
                   <p className="mt-2 text-[10px] leading-5 text-amber-100/60">
-                    다음 단계: {modelFailureCopy.action}
+                    Next step: {modelFailureCopy.action}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -918,7 +936,7 @@ export default function AuditWorkspace() {
                       onClick={retryAudit}
                       className="rounded-lg border border-amber-200/20 bg-amber-100/5 px-3 py-1.5 text-[9px] font-medium text-amber-100 transition-colors hover:bg-amber-100/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/40"
                     >
-                      다시 검사
+                      Retry audit
                     </button>
                   )}
                 </div>
@@ -936,22 +954,22 @@ export default function AuditWorkspace() {
               <div className="grid grid-cols-2 border-b border-white/8 sm:grid-cols-4">
                 {[
                   {
-                    label: "확인됨",
+                    label: "Proven",
                     value: result.report.summary.proven,
                     tone: "text-emerald-300",
                   },
                   {
-                    label: "서로 모순",
+                    label: "Contradicted",
                     value: result.report.summary.contradicted,
                     tone: "text-rose-300",
                   },
                   {
-                    label: "근거 없음",
+                    label: "Missing",
                     value: result.report.summary.missing,
                     tone: "text-amber-200",
                   },
                   {
-                    label: "사람 확인",
+                    label: "Needs review",
                     value: result.report.summary.needsHuman,
                     tone: "text-sky-300",
                   },
@@ -967,7 +985,7 @@ export default function AuditWorkspace() {
                     <p className={`font-mono text-xl ${item.tone}`}>
                       {item.value}
                     </p>
-                    <p className="mt-1 text-[9px] uppercase tracking-wider text-zinc-500">
+                    <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-400">
                       {item.label}
                     </p>
                   </div>
@@ -979,16 +997,17 @@ export default function AuditWorkspace() {
                   <div>
                     <h3 className="text-xs font-medium text-white">
                       {result.mode === "sample"
-                        ? "샘플 정답 기반 판정"
+                        ? "Bundled sample findings"
                         : result.mode === "partial"
-                          ? "부분 완료 판정"
-                          : "실제 감사 판정"}
+                          ? "Partially completed audit"
+                          : "Live audit findings"}
                     </h3>
-                    <p className="mt-1 text-[9px] text-zinc-500">
-                      판정을 누르면 파일 위치와 원문 근거를 볼 수 있습니다.
+                    <p className="mt-1 text-[11px] leading-5 text-zinc-400">
+                      Open a finding to review exact file locations and source
+                      excerpts.
                     </p>
                   </div>
-                  <span className="font-mono text-[9px] text-zinc-500">
+                  <span className="font-mono text-[10px] text-zinc-400">
                     {result.report.findings.length} findings
                   </span>
                 </div>
@@ -1008,18 +1027,18 @@ export default function AuditWorkspace() {
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span
-                                  className={`rounded-full px-2 py-1 font-mono text-[8px] uppercase tracking-[0.12em] ring-1 ring-inset ${status.className}`}
+                                  className={`rounded-full px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] ring-1 ring-inset ${status.className}`}
                                 >
                                   {status.label}
                                 </span>
-                                <span className="font-mono text-[8px] uppercase tracking-wider text-zinc-500">
+                                <span className="font-mono text-[9px] uppercase tracking-wider text-zinc-400">
                                   {finding.severity}
                                 </span>
                               </div>
                               <p className="mt-2 text-xs font-medium leading-5 text-zinc-200">
                                 {finding.title}
                               </p>
-                              <p className="mt-1 line-clamp-2 text-[10px] leading-5 text-zinc-500">
+                              <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-zinc-400">
                                 {finding.explanation}
                               </p>
                             </div>
@@ -1035,8 +1054,8 @@ export default function AuditWorkspace() {
                     })}
                   </div>
                 ) : (
-                  <p className="rounded-xl border border-dashed border-white/10 p-4 text-[11px] text-zinc-500">
-                    표시할 판정이 없습니다.
+                  <p className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-zinc-400">
+                    No findings to display.
                   </p>
                 )}
               </div>
@@ -1048,7 +1067,7 @@ export default function AuditWorkspace() {
               <p className="font-mono text-lg text-zinc-100">
                 {result.inventory.totalFiles}
               </p>
-              <p className="mt-1 text-[9px] uppercase tracking-wider text-zinc-500">
+              <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-400">
                 Files read
               </p>
             </div>
@@ -1056,7 +1075,7 @@ export default function AuditWorkspace() {
               <p className="font-mono text-lg text-zinc-100">
                 {formatBytes(result.inventory.totalUncompressedBytes)}
               </p>
-              <p className="mt-1 text-[9px] uppercase tracking-wider text-zinc-500">
+              <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-400">
                 Unpacked
               </p>
             </div>
@@ -1064,7 +1083,7 @@ export default function AuditWorkspace() {
               <p className={`font-mono text-lg ${manifestState.tone}`}>
                 {manifestState.value}
               </p>
-              <p className="mt-1 text-[9px] uppercase tracking-wider text-zinc-500">
+              <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-400">
                 {manifestState.label}
               </p>
             </div>
@@ -1073,10 +1092,10 @@ export default function AuditWorkspace() {
           <div className="space-y-5 p-4 sm:p-5">
             {result.warnings.length > 0 && (
               <div className="rounded-xl border border-amber-200/15 bg-amber-200/[0.045] p-3">
-                <p className="text-[10px] font-medium text-amber-100">
-                  확인할 점
+                <p className="text-[11px] font-medium text-amber-100">
+                  Review notes
                 </p>
-                <ul className="mt-2 space-y-1 text-[10px] leading-4 text-amber-100/70">
+                <ul className="mt-2 space-y-1 text-[11px] leading-5 text-amber-100/80">
                   {result.warnings.map((warning) => (
                     <li key={warning}>· {warningLabel(warning)}</li>
                   ))}
@@ -1090,7 +1109,7 @@ export default function AuditWorkspace() {
                   Files inside the ZIP
                 </h3>
                 <span
-                  className="font-mono text-[8px] text-zinc-600"
+                  className="font-mono text-[9px] text-zinc-500"
                   title={result.inventory.archiveSha256}
                 >
                   ZIP {shortHash(result.inventory.archiveSha256)}
@@ -1107,12 +1126,12 @@ export default function AuditWorkspace() {
                         <p className="truncate text-[10px] text-zinc-300">
                           {entry.path}
                         </p>
-                        <p className="mt-1 font-mono text-[8px] uppercase tracking-wider text-zinc-600">
+                        <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-zinc-500">
                           {entry.kind} · {formatBytes(entry.size)}
                         </p>
                       </div>
                       <code
-                        className="shrink-0 text-[8px] text-zinc-500"
+                        className="shrink-0 text-[9px] text-zinc-400"
                         title={entry.sha256}
                       >
                         {shortHash(entry.sha256)}
@@ -1179,7 +1198,7 @@ export default function AuditWorkspace() {
                       <p className="mt-2 text-[10px] leading-5 text-zinc-300">
                         {requirement.statement}
                       </p>
-                      <p className="mt-2 border-l border-accent/20 pl-2 text-[9px] leading-4 text-zinc-500">
+                      <p className="mt-2 border-l border-accent/20 pl-2 text-[11px] leading-5 text-zinc-400">
                         {requirement.source.locator}:{" "}
                         {requirement.source.excerpt}
                       </p>
@@ -1187,9 +1206,9 @@ export default function AuditWorkspace() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-xl border border-dashed border-white/10 px-4 py-5 text-center text-[10px] leading-5 text-zinc-500">
-                  파일 목록 검사는 끝났습니다. 서버에 OpenAI API 키를 연결하면
-                  규정 추출도 함께 표시됩니다.
+                <div className="rounded-xl border border-dashed border-white/10 px-4 py-5 text-center text-[11px] leading-5 text-zinc-400">
+                  The file inventory is complete. Connect an OpenAI API key on
+                  the server to include automatic requirement extraction.
                 </div>
               )}
             </div>

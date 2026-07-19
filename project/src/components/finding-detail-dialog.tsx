@@ -5,12 +5,25 @@ import type { AuditFinding } from "@/lib/audit/types";
 
 function factTypeLabel(factType: AuditFinding["evidence"][number]["factType"]) {
   const labels = {
-    deterministic: "파일에서 직접 계산",
-    model_extracted: "GPT가 찾고 서버가 인용 확인",
-    user_supplied: "사용자 제공",
-    sample_answer: "준비된 샘플 정답",
+    deterministic: "Calculated from file",
+    model_extracted: "GPT found · server verified",
+    user_supplied: "User supplied",
+    sample_answer: "Bundled sample answer",
   };
   return labels[factType];
+}
+
+function formatEvidenceLocator(locatorType: string, locator: string) {
+  const type = locatorType.trim();
+  const location = locator.trim();
+  const capitalize = (value: string) =>
+    value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
+
+  if (location.toLowerCase().startsWith(type.toLowerCase())) {
+    return capitalize(location);
+  }
+
+  return `${capitalize(type)} · ${location}`;
 }
 
 type FindingDetailDialogProps = {
@@ -21,19 +34,19 @@ type FindingDetailDialogProps = {
 function statusDetails(status: string) {
   const details: Record<string, { label: string; className: string }> = {
     PROVEN: {
-      label: "확인됨",
+      label: "Proven",
       className: "bg-emerald-400/10 text-emerald-300 ring-emerald-300/20",
     },
     MISSING: {
-      label: "근거 없음",
+      label: "Missing",
       className: "bg-amber-300/10 text-amber-200 ring-amber-200/20",
     },
     CONTRADICTED: {
-      label: "서로 모순",
+      label: "Contradicted",
       className: "bg-rose-400/10 text-rose-300 ring-rose-300/20",
     },
     NEEDS_HUMAN: {
-      label: "사람 확인 필요",
+      label: "Needs review",
       className: "bg-sky-400/10 text-sky-300 ring-sky-300/20",
     },
   };
@@ -116,7 +129,7 @@ export function FindingDetailDialog({
               >
                 {status.label}
               </span>
-              <span className="font-mono text-[9px] uppercase tracking-wider text-zinc-500">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
                 {finding.severity} · {finding.id}
               </span>
             </div>
@@ -131,8 +144,8 @@ export function FindingDetailDialog({
             ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-lg text-zinc-300 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
-            aria-label="판정 상세 닫기"
+            className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-lg text-zinc-300 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+            aria-label="Close finding details"
           >
             ×
           </button>
@@ -140,8 +153,8 @@ export function FindingDetailDialog({
 
         <div className="space-y-5 p-5 sm:p-6">
           <div>
-            <h3 className="font-mono text-[9px] uppercase tracking-[0.15em] text-zinc-500">
-              확인한 주장
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.13em] text-zinc-400">
+              Claim reviewed
             </h3>
             <p
               id="finding-dialog-description"
@@ -156,8 +169,8 @@ export function FindingDetailDialog({
 
           {finding.requirementIds.length > 0 && (
             <div>
-              <h3 className="font-mono text-[9px] uppercase tracking-[0.15em] text-zinc-500">
-                연결된 요구사항
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.13em] text-zinc-400">
+                Linked requirements
               </h3>
               <div className="mt-2 flex flex-wrap gap-2">
                 {finding.requirementIds.map((requirementId) => (
@@ -172,13 +185,23 @@ export function FindingDetailDialog({
             </div>
           )}
 
+          <div className="rounded-xl border border-accent/15 bg-accent/[0.045] p-4">
+            <h3 className="text-[11px] font-medium text-accent">
+              Recommended next step
+            </h3>
+            <p className="mt-2 text-xs leading-6 text-zinc-300">
+              {finding.recommendedAction}
+            </p>
+          </div>
+
           <div>
             <div className="mb-2 flex items-center justify-between gap-3">
-              <h3 className="font-mono text-[9px] uppercase tracking-[0.15em] text-zinc-500">
-                정확한 근거
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.13em] text-zinc-400">
+                Exact evidence
               </h3>
-              <span className="text-[10px] text-zinc-500">
-                {finding.evidence.length}개
+              <span className="text-[11px] text-zinc-400">
+                {finding.evidence.length}{" "}
+                {finding.evidence.length === 1 ? "item" : "items"}
               </span>
             </div>
             {finding.evidence.length > 0 ? (
@@ -192,31 +215,27 @@ export function FindingDetailDialog({
                       <p className="break-all font-mono text-[10px] text-accent">
                         {evidence.artifactId}
                       </p>
-                      <span className="rounded bg-white/5 px-1.5 py-1 text-[9px] text-zinc-400">
+                      <span className="rounded bg-white/5 px-1.5 py-1 text-[10px] text-zinc-300">
                         {factTypeLabel(evidence.factType)}
                       </span>
                     </div>
-                    <p className="mt-2 break-all text-[10px] text-zinc-400">
-                      {evidence.locatorType} · {evidence.locator}
+                    <p className="mt-2 break-all text-[11px] text-zinc-400">
+                      {formatEvidenceLocator(
+                        evidence.locatorType,
+                        evidence.locator,
+                      )}
                     </p>
-                    <blockquote className="mt-3 border-l-2 border-accent/25 pl-3 text-[11px] leading-5 text-zinc-300">
+                    <blockquote className="mt-3 border-l-2 border-accent/25 pl-3 text-xs leading-5 text-zinc-300">
                       {evidence.excerpt}
                     </blockquote>
                   </article>
                 ))}
               </div>
             ) : (
-              <p className="rounded-xl border border-dashed border-white/10 p-4 text-[11px] text-zinc-500">
-                이 판정에 연결된 직접 근거가 없습니다.
+              <p className="rounded-xl border border-dashed border-white/10 p-4 text-xs text-zinc-400">
+                No direct evidence is linked to this finding.
               </p>
             )}
-          </div>
-
-          <div className="rounded-xl border border-accent/15 bg-accent/[0.045] p-4">
-            <h3 className="text-[10px] font-medium text-accent">다음에 할 일</h3>
-            <p className="mt-2 text-xs leading-6 text-zinc-300">
-              {finding.recommendedAction}
-            </p>
           </div>
         </div>
       </div>

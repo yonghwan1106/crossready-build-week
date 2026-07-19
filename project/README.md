@@ -3,9 +3,9 @@
 **Every artifact agrees before you submit.**
 
 CrossReady is a cross-artifact evidence auditor for high-stakes submissions. It
-compares requirements, deliverables, source code, live URLs, and submission copy
-to show where a claim is proven, missing, contradicted, or still needs human
-review.
+compares requirements with submission copy and bounded text previews, then
+combines model findings with ZIP inventory, SHA-256, and manifest facts to show
+where a claim is proven, missing, contradicted, or still needs human review.
 
 This repository contains the working CrossReady prototype for OpenAI Build Week
 2026.
@@ -14,8 +14,8 @@ This repository contains the working CrossReady prototype for OpenAI Build Week
 
 The production reviewer build is available at
 **[crossready-build-week.vercel.app](https://crossready-build-week.vercel.app/)**.
-Select **Load broken sample**, run the audit, and open any finding to inspect its
-source locations and excerpts. No account is required.
+Select **Try the broken sample**, choose **Run sample audit**, and open any
+finding to inspect its source locations and excerpts. No account is required.
 
 The public deployment intentionally has no `OPENAI_API_KEY`; the bundled sample
 therefore provides the complete 12-finding demo without paid API usage. The real
@@ -69,7 +69,7 @@ npm run build
 npm run start
 ```
 
-The current verification baseline is 64 passing automated tests plus a clean
+The current verification baseline is 67 passing automated tests plus a clean
 lint, TypeScript, production-build, public-browser, and Vercel runtime-log
 check.
 
@@ -121,10 +121,18 @@ requests parse uploads or scan ZIPs concurrently per instance by default; the
 - The active-request guard is also per-instance and is a CPU/memory pressure
   brake, not a durable public concurrency limit.
 
-## Verified live run
+## Verified live runs
 
-On 2026-07-18, the complete non-sample path finished successfully with the
-requested `gpt-5.6` model (API response model `gpt-5.6-sol`). It produced 14
-atomic requirements and exactly 14 final findings, verified 21 exact line
-evidence references, and used 8,478 total tokens. The two model stages took
-36.65 and 48.08 seconds.
+On 2026-07-18, an initial measured run through the live model path finished
+successfully with the requested `gpt-5.6` model (API response model
+`gpt-5.6-sol`). It produced 14 atomic requirements and exactly 14 final
+findings, verified 21 exact line evidence references, and used 8,478 total
+tokens. The two model stages took 36.65 and 48.08 seconds.
+
+A later, separate reviewer-capture run used the same fictional challenge rules
+file and intentionally broken ZIP. It read 11 files, displayed 16 final
+findings, used 9,038 tokens, and took 71.9 seconds. These totals are kept
+separate because they came from a different live-model execution. The later
+result is preserved in the [reviewer evidence screenshot][reviewer-capture].
+
+[reviewer-capture]: ../assets/screenshots/03-crossready-gpt56-live-result.png

@@ -3,25 +3,31 @@
 **Every artifact agrees before you submit.**
 
 CrossReady is an evidence-backed audit workspace for high-stakes submission
-packages. It checks whether the rules, final PDF, README, repository, live
-product, video metadata, and submission copy all describe the same product.
+packages. It compares requirements with submission copy and bounded text
+previews, then combines those findings with ZIP inventory, manifest, and hash
+facts. PDF, image, runtime, and external-page claims that it cannot independently
+verify stay in human review.
 
-This repository is being built for OpenAI Build Week 2026 in the
-**Work & Productivity** track.
+This repository contains the submitted CrossReady entry for OpenAI Build Week
+2026 in the **Work & Productivity** track.
 
 ## Live reviewer demo
 
 Open **[crossready-build-week.vercel.app](https://crossready-build-week.vercel.app/)**
 and follow this no-login, no-cost path:
 
-1. Select **Load broken sample**.
-2. Select **Run evidence audit**.
+1. Select **Try the broken sample**.
+2. Select **Run sample audit**.
 3. Open the first finding to inspect four exact evidence records.
 
 The public reviewer build intentionally has no OpenAI API key, so visitors
 cannot consume paid credit. It demonstrates the complete saved sample flow.
-The separate GPT-5.6 live path was verified on 2026-07-18 with 14 extracted
-requirements, 14 findings, and 21 server-computed line references.
+The separate GPT-5.6 live path was verified on 2026-07-18. An initial measured
+run produced 14 extracted requirements, 14 findings, 21 server-computed line
+references, and 8,478 total tokens. A later, distinct reviewer-capture run read
+11 files, displayed 16 findings, used 9,038 tokens, and took 71.9 seconds. The
+totals are reported separately because they came from two different live-model
+executions.
 
 ## Quick start
 
@@ -32,7 +38,8 @@ npm test
 npm run dev
 ```
 
-Open <http://localhost:3000>, select **Load broken sample**, and run the audit.
+Open <http://localhost:3000>, select **Try the broken sample**, and then select
+**Run sample audit**.
 The sample does not require an API key. Full environment and command details are
 in [`project/README.md`](project/README.md).
 
@@ -69,7 +76,7 @@ CrossReady never silently edits artifacts and never submits on a user's behalf.
 - **Structured Outputs** for schema-constrained requirements and findings
 - A semantic cross-audit after deterministic package checks
 
-The OpenAI client will be initialized only inside server-side request handlers.
+The OpenAI client is initialized only inside server-side request handlers.
 The API key must never be exposed to the browser.
 
 ## How Codex accelerated development
@@ -82,7 +89,7 @@ Codex was the primary implementation and verification workspace:
 - built server-side evidence verification, deterministic manifest overrides,
   cost guards, cancellation, and typed error handling;
 - implemented the accessible evidence dialog and reviewer flow;
-- ran 64 automated tests, lint, type checks, production builds, browser checks,
+- ran 67 automated tests, lint, type checks, production builds, browser checks,
   and an independent adversarial code review; and
 - diagnosed the first hosting preset mismatch and verified the corrected
   production deployment.
@@ -155,7 +162,7 @@ cd project
 npm test
 ```
 
-Run the app without an API key and choose **Load broken sample** to test the
+Run the app without an API key and choose **Try the broken sample** to test the
 complete local sample flow. To test live extraction, copy `project/.env.example`
 to `project/.env.local`, add `OPENAI_API_KEY` locally, and restart the app. Never
 put the key in a browser variable or commit it.

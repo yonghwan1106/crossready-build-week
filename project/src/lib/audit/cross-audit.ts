@@ -304,11 +304,32 @@ function verifiedModelFinding(
 function manifestRequirementIds(requirements: RequirementSet | null): string[] {
   if (!requirements) return [];
   return requirements.requirements
-    .filter((requirement) =>
-      /manifest|sha-?256|hash/i.test(
-        `${requirement.statement} ${requirement.source.excerpt}`,
-      ),
-    )
+    .filter((requirement) => {
+      const requirementText =
+        `${requirement.statement} ${requirement.source.excerpt}`;
+      const isCredentialSecurityRequirement =
+        /\b(?:passwords?|credentials?|secrets?|tokens?|api[- ]?keys?)\b/i.test(
+          requirementText,
+        );
+      const mentionsManifest =
+        /\bmanifest(?:\.json)?\b/i.test(requirementText);
+      const hasExplicitDigestTerm =
+        /\b(?:sha-?256|checksum(?:s)?|digest(?:s)?)\b/i.test(requirementText);
+      const hasFileContext =
+        /\b(?:package|files?|submission|submitted|archive|artifacts?|bytes?|entr(?:y|ies)|paths?)\b/i.test(
+          requirementText,
+        );
+      const hasGenericIntegrityTerm =
+        /\b(?:hash(?:es)?|match(?:es|ed|ing)?|integrity|exact(?:ly)?|identical|verif(?:y|ies|ied|ication))\b/i.test(
+          requirementText,
+        );
+      return (
+        !isCredentialSecurityRequirement &&
+        mentionsManifest &&
+        (hasExplicitDigestTerm ||
+          (hasFileContext && hasGenericIntegrityTerm))
+      );
+    })
     .map((requirement) => requirement.id);
 }
 

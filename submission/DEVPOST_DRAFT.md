@@ -1,4 +1,4 @@
-# CrossReady — Devpost submission draft
+# CrossReady — Devpost submission copy
 
 ## Project name
 
@@ -32,8 +32,8 @@ say every test passes while the attached machine results show failures. These
 inconsistencies are easy to miss because the evidence is scattered across
 rules, documents, source files, manifests, and submission copy.
 
-Most submission checkers ask whether a file exists. We wanted to ask a more
-useful question:
+Many checklist-style submission workflows stop at whether a file exists. We
+wanted to ask a more useful question:
 
 **Do all of the submitted artifacts tell the same, provable story?**
 
@@ -138,19 +138,22 @@ evidence is acceptable. This separation was essential: the model is useful for
 finding relationships across differently worded documents, while the server
 provides the evidence boundary.
 
-We completed a measured, non-sample local run using the requested `gpt-5.6`
-model. The API returned model identifier `gpt-5.6-sol`. That run produced:
+We completed an initial measured local run through the live `gpt-5.6` path,
+separate from the public saved-answer demo. The API returned model identifier
+`gpt-5.6-sol`. That run produced:
 
 - 14 extracted atomic requirements;
 - exactly 14 final findings;
 - 21 exact evidence excerpts with server-computed line references; and
 - 8,478 total tokens across the two model stages.
 
-For the final reviewer evidence, we made one additional controlled live run
-with the same real rules and broken ZIP. It read 11 files and displayed 16
-final findings, the `GPT-5.6-SOL` model badge, 9,038 tokens, and 71.9 seconds
-directly in the interface. That screen is preserved as
-`assets/screenshots/03-crossready-gpt56-live-result.png`. It is a real paid
+For the final reviewer evidence, we made a later, distinct controlled live-model
+run with the same fictional challenge rules file and intentionally broken ZIP.
+It read 11 files and displayed 16 final findings, the `GPT-5.6-SOL` model badge,
+9,038 tokens, and 71.9 seconds directly in the interface. Because these were two
+different GPT-5.6 executions, their counts and token totals are reported
+separately rather than treated as one benchmark. The later screen is preserved
+as `assets/screenshots/03-crossready-gpt56-live-result.png`. It is a real paid
 run, separate from the free 12-finding public sample.
 
 ## How Codex was used
@@ -173,7 +176,7 @@ the problem, track, four-state result model, evidence-first standard,
 no-silent-rewrite rule, and public-demo cost boundary. Codex accelerated
 implementation and verification within those decisions.
 
-The current baseline is **64 passing automated tests**, together with clean
+The current baseline is **67 passing automated tests**, together with clean
 lint, TypeScript, production-build, browser-flow, and deployed-runtime checks.
 
 ## Challenges we ran into
@@ -220,7 +223,7 @@ GPT-5.6 path was measured separately in a controlled local run.
 - Prevented unverifiable claims from being presented as facts.
 - Preserved useful partial results when a model stage fails.
 - Created a no-login, no-cost reviewer path.
-- Reached 64 passing automated tests plus clean build and browser verification.
+- Reached 67 passing automated tests plus clean build and browser verification.
 - Kept the user in control: CrossReady reports discrepancies but does not
   rewrite or submit their work.
 
@@ -263,12 +266,12 @@ Our next priorities are:
 No account or API key is required.
 
 1. Open <https://crossready-build-week.vercel.app/>.
-2. Select **Load broken sample · 준비된 고장 사례로 체험**.
+2. Select **Try the broken sample**.
 3. Confirm that both required files are selected and the interface shows
    `2 / 2 added`.
-4. Select **Run evidence audit**.
+4. Select **Run sample audit**.
 5. Review the 12 findings: 1 Proven, 8 Contradicted, 1 Missing, and 2 Needs
-   Human.
+   review.
 6. Open **Configured model contradicts submitted model**.
 7. Inspect its four evidence records:
    - `submission/description.md`
@@ -310,11 +313,12 @@ key and does not call GPT-5.6. It demonstrates the actual file-loading,
 ZIP-scanning, result, and evidence-review interface without consuming paid
 credit.
 
-The real GPT-5.6 path was tested separately in a controlled local environment.
-Its measured result was 14 requirements, 14 findings, 21 server-computed line
-references, and 8,478 total tokens. A later single-run reviewer capture read
-11 files and displayed 16 findings with 9,038 tokens in 71.9 seconds. We do not
-present either paid result as the free public sample.
+The live GPT-5.6 path was tested separately in a controlled local environment.
+An initial measured run produced 14 requirements, 14 findings, 21
+server-computed line references, and 8,478 total tokens. A later, distinct
+reviewer-capture run read 11 files and displayed 16 findings with 9,038 tokens
+in 71.9 seconds. The totals differ because they came from separate executions.
+We do not present either paid result as the free public sample.
 
 Additional current limitations:
 

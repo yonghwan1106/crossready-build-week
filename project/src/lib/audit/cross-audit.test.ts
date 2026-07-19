@@ -407,6 +407,93 @@ describe("crossAuditWithGpt", () => {
     });
   });
 
+  it("overrides a manifest requirement with an explicit digest term", async () => {
+    const manifestRequirements = requirements(
+      "The manifest must contain valid SHA-256 digests.",
+    );
+    const { client } = fakeClient([
+      modelFinding({ status: "PROVEN", claim: "All digests are valid." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: manifestRequirements,
+        inventory: inventory({ manifestMismatch: true }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(1);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "CONTRADICTED",
+      title: "Manifest integrity",
+      evidence: [{ factType: "deterministic" }],
+    });
+  });
+
+  it("overrides a manifest file-integrity requirement without an explicit hash term", async () => {
+    const manifestRequirements = requirements(
+      "Manifest entries must match submitted files.",
+    );
+    const { client } = fakeClient([
+      modelFinding({ status: "PROVEN", claim: "All entries match." }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: manifestRequirements,
+        inventory: inventory({ manifestMismatch: true }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(1);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "CONTRADICTED",
+      title: "Manifest integrity",
+      evidence: [{ factType: "deterministic" }],
+    });
+  });
+
+  it("does not override an unrelated credential-security manifest requirement", async () => {
+    const passwordRequirements = requirements(
+      "The security manifest must document password hashes.",
+    );
+    const { client } = fakeClient([
+      modelFinding({
+        status: "PROVEN",
+        evidence: [
+          {
+            artifactId: "README.md",
+            excerpt: "release is version 3.0",
+          },
+        ],
+      }),
+    ]);
+
+    const result = await crossAuditWithGpt(
+      {
+        requirements: passwordRequirements,
+        inventory: inventory({ manifestMismatch: true }),
+      },
+      client,
+    );
+
+    expect(result.report.findings).toHaveLength(2);
+    expect(result.report.findings[0]).toMatchObject({
+      requirementIds: ["REQ-001"],
+      status: "PROVEN",
+      claim: "The security manifest must document password hashes.",
+    });
+    expect(result.report.findings[1]).toMatchObject({
+      requirementIds: [],
+      title: "Manifest integrity",
+      status: "CONTRADICTED",
+    });
+  });
+
   it("points invalid manifest evidence to the real manifest file", async () => {
     const invalidInventory = inventory();
     invalidInventory.manifest = {
