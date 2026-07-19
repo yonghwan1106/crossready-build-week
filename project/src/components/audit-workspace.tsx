@@ -400,6 +400,20 @@ export default function AuditWorkspace() {
   }, [result]);
 
   useEffect(() => {
+    if (!demoMode || isLoadingSample || !rulesFile || !archiveFile) return;
+
+    const frame = requestAnimationFrame(() => {
+      runButtonRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      runButtonRef.current?.focus({ preventScroll: true });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [archiveFile, demoMode, isLoadingSample, rulesFile]);
+
+  useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -451,13 +465,6 @@ export default function AuditWorkspace() {
         }),
       );
       setDemoMode(true);
-      requestAnimationFrame(() => {
-        runButtonRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-        runButtonRef.current?.focus({ preventScroll: true });
-      });
 
       if (rulesInputRef.current) rulesInputRef.current.value = "";
       if (archiveInputRef.current) archiveInputRef.current.value = "";
